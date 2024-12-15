@@ -1,4 +1,4 @@
-function val = PolyShape(degree, a, xi, der)
+function val = PolyShape(degree, a, xi, der)  %(多项式次数，型函数序号，自变量的值，求导次数)
 switch degree
     % linear basis function
     case 1
