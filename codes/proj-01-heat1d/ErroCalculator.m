@@ -1,4 +1,4 @@
-clear all; clc; clf; % clean the memory, screen, and figure
+function [L2_error,H1_error] = ErroCalculator(n_el)
 
 % Problem definition
 f = @(x) -20*x.^3; % f(x) is the source
@@ -11,7 +11,7 @@ exact_x = @(x) 5 * x.^4;
 % Setup the mesh
 pp   = 2;              % polynomial degree
 n_en = pp + 1;         % number of element or local nodes
-n_el = 16;              % number of elements
+%n_el = 16;              % number of elements
 n_np = n_el * pp + 1;  % number of nodal points
 n_eq = n_np - 1;       % number of equations
 n_int = 10;            % 高斯积分点的个数
@@ -128,11 +128,10 @@ for ee = 1 : n_el
 end
 
 
-plot(x_sam, u_sam, '-r','LineWidth',1);
-hold on;
-plot(x_sam, y_sam, '-k','LineWidth',1);
-legend("numerical solution","exact solution")
-hold off
+% plot(x_sam, u_sam, '-r','LineWidth',1);
+% hold on;
+% plot(x_sam, y_sam, '-k','LineWidth',1);
+% legend("numerical solution","exact solution")
 
 % calculate the error
 nqp = 10;
@@ -169,14 +168,6 @@ H1_top = sqrt(H1_top); H1_bot = sqrt(H1_bot);
 L2_error = L2_top / L2_bot;
 H1_error = H1_top / H1_bot;
 
-% EOF
-L2_error = [];
-H1_error = [];
-for nel = 2:2:16
-    L2_error = [L2_error,ErroCalculator(nel)];
-    H1_error = [H1_error,ErroCalculator(nel)];
+
 end
-figure
-plot(log(2:2:16),log(L2_error))
-figure
-plot(log(2:2:16),log(H1_error))
+
