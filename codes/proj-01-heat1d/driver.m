@@ -9,7 +9,7 @@ exact = @(x) x.^5;
 exact_x = @(x) 5 * x.^4;
 
 % Setup the mesh
-pp   = 2;              % polynomial degree
+pp   = 3;              % polynomial degree
 n_en = pp + 1;         % number of element or local nodes
 n_el = 16;              % number of elements
 n_np = n_el * pp + 1;  % number of nodal points
@@ -185,10 +185,10 @@ plot(log(2:2:16),log(L2_error),'LineWidth',1)
 xlabel("log(n_e_l)")
 ylabel("log(L2\_error)")
 p=polyfit(log(2:2:16),log(L2_error),1);
-slope_L2_error = p(1)
+slope_L2_error = p(1);
 figure
 plot(log(2:2:16),log(H1_error),'LineWidth',1)
 xlabel("log(n_e_l)")
 ylabel("log(H1\_error)")
 p=polyfit(log(2:2:16),log(H1_error),1);
-slope_H1_error = p(1)
+slope_H1_error = p(1);
