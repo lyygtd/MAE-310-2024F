@@ -1,4 +1,4 @@
-function [L2_error,H1_error] = ErroCalculator(n_el)
+function [L2_error,H1_error] = ErrorCalculator(n_el)
 
 % Problem definition
 f = @(x) -20*x.^3; % f(x) is the source
@@ -168,6 +168,4 @@ H1_top = sqrt(H1_top); H1_bot = sqrt(H1_bot);
 L2_error = L2_top / L2_bot;
 H1_error = H1_top / H1_bot;
 
-
-end
 

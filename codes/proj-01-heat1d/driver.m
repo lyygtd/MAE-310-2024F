@@ -132,6 +132,9 @@ plot(x_sam, u_sam, '-r','LineWidth',1);
 hold on;
 plot(x_sam, y_sam, '-k','LineWidth',1);
 legend("numerical solution","exact solution")
+xlabel("x")
+ylabel("y")
+title("numerical solution vs. exact solution")
 hold off
 
 % calculate the error
@@ -173,10 +176,19 @@ H1_error = H1_top / H1_bot;
 L2_error = [];
 H1_error = [];
 for nel = 2:2:16
-    L2_error = [L2_error,ErroCalculator(nel)];
-    H1_error = [H1_error,ErroCalculator(nel)];
+    [L2_error_temp, H1_error_temp] = ErrorCalculator(nel);
+    L2_error = [L2_error,L2_error_temp];
+    H1_error = [H1_error,H1_error_temp];
 end
 figure
-plot(log(2:2:16),log(L2_error))
+plot(log(2:2:16),log(L2_error),'LineWidth',1)
+xlabel("log(n_e_l)")
+ylabel("log(L2\_error)")
+p=polyfit(log(2:2:16),log(L2_error),1);
+slope_L2_error = p(1)
 figure
-plot(log(2:2:16),log(H1_error))
+plot(log(2:2:16),log(H1_error),'LineWidth',1)
+xlabel("log(n_e_l)")
+ylabel("log(H1\_error)")
+p=polyfit(log(2:2:16),log(H1_error),1);
+slope_H1_error = p(1)
