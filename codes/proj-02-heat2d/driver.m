@@ -13,7 +13,8 @@ f = @(x,y) 2.0*kappa*x*(1-x) + 2.0*kappa*y*(1-y); % source term
 n_int_xi  = 3;
 n_int_eta = 3;
 n_int     = n_int_xi * n_int_eta;
-[xi, eta, weight] = Gauss2D(n_int_xi, n_int_eta);
+    [xi, eta, weight] = Gauss2D(n_int_xi, n_int_eta);
+%     ξ   η
 
 % mesh generation
 n_en   = 4;               % number of nodes in an element
@@ -73,8 +74,8 @@ F = zeros(n_eq, 1);
 
 % loop over element to assembly the matrix and vector
 for ee = 1 : n_el
-  x_ele = x_coor( IEN(ee, 1:n_en) );
-  y_ele = y_coor( IEN(ee, 1:n_en) );
+  x_ele = x_coor( IEN(ee, 1:n_en) );    % 局部节点的全局横坐标 = x_ele(a)
+  y_ele = y_coor( IEN(ee, 1:n_en) );    % 局部节点的全局纵坐标 = y_ele(a)
   
   k_ele = zeros(n_en, n_en); % element stiffness matrix
   f_ele = zeros(n_en, 1);    % element load vector
@@ -84,7 +85,7 @@ for ee = 1 : n_el
     dx_dxi = 0.0; dx_deta = 0.0;
     dy_dxi = 0.0; dy_deta = 0.0;
     for aa = 1 : n_en
-      x_l = x_l + x_ele(aa) * Quad(aa, xi(ll), eta(ll));
+      x_l = x_l + x_ele(aa) * Quad(aa, xi(ll), eta(ll));  %坐标变换Mapping
       y_l = y_l + y_ele(aa) * Quad(aa, xi(ll), eta(ll));    
       [Na_xi, Na_eta] = Quad_grad(aa, xi(ll), eta(ll));
       dx_dxi  = dx_dxi  + x_ele(aa) * Na_xi;
