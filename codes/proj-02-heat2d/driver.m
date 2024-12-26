@@ -18,8 +18,8 @@ n_int     = n_int_xi * n_int_eta;
 
 % mesh generation
 n_en   = 4;               % number of nodes in an element
-n_el_x = 60;               % number of elements in x-dir
-n_el_y = 60;               % number of elements in y-dir
+n_el_x = 3;               % number of elements in x-dir
+n_el_y = 3;               % number of elements in y-dir
 n_el   = n_el_x * n_el_y; % total number of elements
 
 n_np_x = n_el_x + 1;      % number of nodal points in x-dir
@@ -69,7 +69,8 @@ n_eq = counter;
 LM = ID(IEN);
 
 % allocate the stiffness matrix and load vector
-K = spalloc(n_eq, n_eq, 9 * n_eq);
+% K = spalloc(n_eq, n_eq, 9 * n_eq);
+K = zeros(n_eq,n_eq);
 F = zeros(n_eq, 1);
 
 % loop over element to assembly the matrix and vector
@@ -128,10 +129,13 @@ for ee = 1 : n_el
           % modify F with the boundary data
           % here we do nothing because the boundary data g is zero or
           % homogeneous
+          
+
         end
       end  
     end
   end
+  K
 end
 
 % solve the stiffness matrix
@@ -154,3 +158,65 @@ end
 save("HEAT", "disp", "n_el_x", "n_el_y");
 
 % EOF
+
+%数据可视化
+n_sam = 10; %每个单元绘图样本点的个数
+xi_sam = -1 : (2/n_sam) : 1;
+yi_sam = -1 : (2/n_sam) : 1;
+
+x_sam = zeros(n_el * n_sam + 1, 1);
+y_sam = zeros(n_el * n_sam + 1, 1);
+u_sam = zeros(n_el * n_sam + 1, n_el * n_sam + 1); % store the exact solution value at sampling points
+uh_sam = zeros(n_el * n_sam + 1, n_el * n_sam + 1); % store the numerical solution value at sampling pts
+
+for ex = 1 : n_el_x
+    for ey = 1 : n_el_y
+        ee = (ey-1) * n_el_x + ex;
+        x_ele = x_coor( IEN(ee, :) );
+        y_ele = y_coor( IEN(ee, :) );
+        u_ele = disp( IEN(ee, :) );
+
+        if ex == n_el_x % 最后一个单元多绘制一个点
+            n_sam_end_x = n_sam+1;
+        else
+            n_sam_end_x = n_sam;
+        end
+
+        if ey == n_el_y % 最后一个单元多绘制一个点
+            n_sam_end_y = n_sam+1;
+        else
+            n_sam_end_y = n_sam;
+        end
+
+        for ll = 1 : n_sam_end_x
+            for kk = 1 : n_sam_end_y
+                x_l = 0.0;
+                y_l = 0.0;
+                u_l = 0.0;
+                for aa = 1 : n_en
+                    x_l = x_l + x_ele(aa) * Quad( aa, xi_sam(ll),yi_sam(kk)); % 局部向全局的坐标变换
+                    y_l = y_l + y_ele(aa) * Quad( aa, xi_sam(ll),yi_sam(kk)); % 局部向全局的坐标变换
+                    u_l = u_l + u_ele(aa) * Quad( aa, xi_sam(ll),yi_sam(kk)); % u(x)解的表达式
+                end
+
+                x_sam( (ex-1)*n_sam + ll ) = x_l*hx;
+                y_sam( (ey-1)*n_sam + kk ) = y_l*hy;
+                uh_sam( (ex-1)*n_sam + ll, (ey-1)*n_sam + kk ) = u_l;
+                u_sam( (ex-1)*n_sam + ll, (ey-1)*n_sam + kk ) = exact(x_l,y_l);
+            end
+        end
+    end
+end
+figure
+surf(x_sam, y_sam, u_sam);
+title("exact solution")
+xlabel("x")
+ylabel("y")
+zlabel("u")
+figure
+surf(x_sam, y_sam, uh_sam);
+title("numercial solution")
+xlabel("x")
+ylabel("y")
+zlabel("u^h")
+
