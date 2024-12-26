@@ -1,5 +1,5 @@
-function val = Quad(aa, xi, eta)
-
+function val = Quad(aa, xi, eta) 
+%型函数，aa为型函数序号，xi（ξ）为横坐标，eta（η）为纵坐标
 if aa == 1
     val = 0.25 * (1-xi) * (1-eta);
 elseif aa == 2
