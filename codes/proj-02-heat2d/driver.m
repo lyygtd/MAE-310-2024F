@@ -18,8 +18,8 @@ n_int     = n_int_xi * n_int_eta;
 
 % mesh generation
 n_en   = 4;               % number of nodes in an element
-n_el_x = 2;               % number of elements in x-dir
-n_el_y = 2;               % number of elements in y-dir
+n_el_x = 3;               % number of elements in x-dir
+n_el_y = 3;               % number of elements in y-dir
 n_el   = n_el_x * n_el_y; % total number of elements
 
 n_np_x = n_el_x + 1;      % number of nodal points in x-dir
@@ -135,8 +135,6 @@ for ee = 1 : n_el
       end  
     end
   end
-  K
-  k_ele
 end
 
 % solve the stiffness matrix
@@ -200,8 +198,8 @@ for ex = 1 : n_el_x
                     u_l = u_l + u_ele(aa) * Quad( aa, xi_sam(ll),yi_sam(kk)); % u(x)解的表达式
                 end
 
-                x_sam( (ex-1)*n_sam + ll ) = x_l*hx;
-                y_sam( (ey-1)*n_sam + kk ) = y_l*hy;
+                x_sam( (ex-1)*n_sam + ll ) = x_l;
+                y_sam( (ey-1)*n_sam + kk ) = y_l;
                 uh_sam( (ex-1)*n_sam + ll, (ey-1)*n_sam + kk ) = u_l;
                 u_sam( (ex-1)*n_sam + ll, (ey-1)*n_sam + kk ) = exact(x_l,y_l);
             end

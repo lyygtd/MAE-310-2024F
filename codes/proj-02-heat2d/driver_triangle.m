@@ -18,8 +18,8 @@ eta =    [1/6, 2/3, 1/6];
 
 % mesh generation
 n_en   = 3;               % number of nodes in an element
-n_el_x = 3;               % number of elements in x-dir  直接将四边形网格按对角线一分为二的三角形网格,网格数量为原来的两倍
-n_el_y = 3;               % number of elements in y-dir
+n_el_x = 7;               % number of elements in x-dir  直接将四边形网格按对角线一分为二的三角形网格,网格数量为原来的两倍
+n_el_y = 7;               % number of elements in y-dir
 n_el   = n_el_x * n_el_y * 2; % total number of elements
 
 n_np_x = n_el_x + 1;      % number of nodal points in x-dir
@@ -201,66 +201,35 @@ end
 
 % save the solution vector and number of elements to disp with name
 % HEAT.mat
+n_el_y = n_el_y/2;
 save("HEAT", "disp", "n_el_x", "n_el_y");
 
 % EOF
 %数据可视化
-% n_sam = 10; %每个单元绘图样本点的个数
-% xi_sam = -1 : (2/n_sam) : 1;
-% yi_sam = -1 : (2/n_sam) : 1;
-% 
-% x_sam = zeros(n_el * n_sam + 1, 1);
-% y_sam = zeros(n_el * n_sam + 1, 1);
-% u_sam = zeros(n_el * n_sam + 1, n_el * n_sam + 1); % store the exact solution value at sampling points
-% uh_sam = zeros(n_el * n_sam + 1, n_el * n_sam + 1); % store the numerical solution value at sampling pts
-% 
-% for ex = 1 : n_el_x
-%     for ey = 1 : n_el_y
-%         ee = (ey-1) * n_el_x + ex;
-%         x_ele = x_coor( IEN(ee, :) );
-%         y_ele = y_coor( IEN(ee, :) );
-%         u_ele = disp( IEN(ee, :) );
-% 
-%         if ex == n_el_x % 最后一个单元多绘制一个点
-%             n_sam_end_x = n_sam+1;
-%         else
-%             n_sam_end_x = n_sam;
-%         end
-% 
-%         if ey == n_el_y % 最后一个单元多绘制一个点
-%             n_sam_end_y = n_sam+1;
-%         else
-%             n_sam_end_y = n_sam;
-%         end
-% 
-%         for ll = 1 : n_sam_end_x
-%             for kk = 1 : n_sam_end_y
-%                 x_l = 0.0;
-%                 y_l = 0.0;
-%                 u_l = 0.0;
-%                 for aa = 1 : n_en
-%                     x_l = x_l + x_ele(aa) * Tria( aa, xi_sam(ll),yi_sam(kk)); % 局部向全局的坐标变换
-%                     y_l = y_l + y_ele(aa) * Tria( aa, xi_sam(ll),yi_sam(kk)); % 局部向全局的坐标变换
-%                     u_l = u_l + u_ele(aa) * Tria( aa, xi_sam(ll),yi_sam(kk)); % u(x)解的表达式
-%                 end
-% 
-%                 x_sam( (ex-1)*n_sam + ll ) = x_l*hx;
-%                 y_sam( (ey-1)*n_sam + kk ) = y_l*hy;
-%                 uh_sam( (ex-1)*n_sam + ll, (ey-1)*n_sam + kk ) = u_l;
-%                 u_sam( (ex-1)*n_sam + ll, (ey-1)*n_sam + kk ) = exact(x_l,y_l);
-%             end
-%         end
-%     end
-% end
-% figure
-% surf(x_sam, y_sam, u_sam);
-% title("exact solution")
-% xlabel("x")
-% ylabel("y")
-% zlabel("u")
-% figure
-% surf(x_sam, y_sam, uh_sam);
-% title("numercial solution")
-% xlabel("x")
-% ylabel("y")
-% zlabel("u^h")
+uh = zeros(n_np_x, n_np_x);
+for ee = 1 : n_el
+    node_index_ele = IEN(ee,:);
+    for aa = 1:n_en
+        i = mod(IEN(ee,aa),n_np_x);
+        j = floor(IEN(ee,aa)/n_np_x)+1;
+        if i == 0
+            i = n_np_x;
+            j = IEN(ee,aa)/n_np_x;
+        end
+        x_ele = i * hx;
+        y_ele = j * hy;
+        if aa == 1
+            uh(i,j) = uh(i,j) - disp(IEN(ee,aa))*Tria(aa,0,0);
+        elseif aa == 2
+            uh(i,j) = uh(i,j) - disp(IEN(ee,aa))*Tria(aa,1,0);
+        elseif aa == 3
+            uh(i,j) = uh(i,j) - disp(IEN(ee,aa))*Tria(aa,0,1);
+        end
+    end
+end
+figure
+surf(x_coor(1:n_np_x), y_coor(1:n_np_y:n_np_x*n_np_y), uh);
+title("numercial solution")
+xlabel("x")
+ylabel("y")
+zlabel("u^h")
