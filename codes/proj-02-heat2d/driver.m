@@ -18,8 +18,8 @@ n_int     = n_int_xi * n_int_eta;
 
 % mesh generation
 n_en   = 4;               % number of nodes in an element
-n_el_x = 3;               % number of elements in x-dir
-n_el_y = 3;               % number of elements in y-dir
+n_el_x = 2;               % number of elements in x-dir
+n_el_y = 2;               % number of elements in y-dir
 n_el   = n_el_x * n_el_y; % total number of elements
 
 n_np_x = n_el_x + 1;      % number of nodal points in x-dir
@@ -136,6 +136,7 @@ for ee = 1 : n_el
     end
   end
   K
+  k_ele
 end
 
 % solve the stiffness matrix

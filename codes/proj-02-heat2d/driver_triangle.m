@@ -11,15 +11,15 @@ f = @(x,y) 2.0*kappa*x*(1-x) + 2.0*kappa*y*(1-y); % source term
 
 % quadrature rule
 n_int = 3;
-weight = [1/3, 1/3, 1/3];
+weight = [1/3, 1/3, 1/3]/2;
 xi =     [2/3, 1/6, 1/6];
 eta =    [1/6, 2/3, 1/6];
 
 
 % mesh generation
 n_en   = 3;               % number of nodes in an element
-n_el_x = 3;               % number of elements in x-dir  直接将四边形网格按对角线一分为二的三角形网格,网格数量为原来的两倍
-n_el_y = 3;               % number of elements in y-dir
+n_el_x = 4;               % number of elements in x-dir  直接将四边形网格按对角线一分为二的三角形网格,网格数量为原来的两倍
+n_el_y = 4;               % number of elements in y-dir
 n_el   = n_el_x * n_el_y * 2; % total number of elements
 
 n_np_x = n_el_x + 1;      % number of nodal points in x-dir
@@ -49,18 +49,50 @@ IEN = zeros(n_el, n_en);
 for ex = 1 : n_el_x
   for ey = 1 : n_el_y/2
     ee = (ey-1) * n_el_x + ex; % element index
-    
-    if mod(ex,2) == 1
-        IEN(ee, 1) = (ey-1) * n_np_x + (ex + 1) / 2;
-        IEN(ee, 2) = (ey-1) * n_np_x + (ex + 1) / 2 + 1;
-        IEN(ee, 3) =  ey    * n_np_x + (ex + 1) / 2;
+    if mod(ey,1) == 1
+        if mod(ex,4) == 1
+            IEN(ee, 1) = (ey-1) * n_np_x + 1 + floor(ex / 4) * 2;
+            IEN(ee, 2) =  ey    * n_np_x + 1 + floor(ex / 4) * 2;
+            IEN(ee, 3) =  ey    * n_np_x + 2 + floor(ex / 4) * 2;
+        end
+        if mod(ex,4) == 2
+            IEN(ee, 1) =  (ey-1) * n_np_x + 1 + floor(ex / 4) * 2;
+            IEN(ee, 2) =  (ey-1) * n_np_x + 2 + floor(ex / 4) * 2;
+            IEN(ee, 3) =   ey    * n_np_x + 2 + floor(ex / 4) * 2;
+        end
+        if mod(ex,4) == 3
+            IEN(ee, 1) = (ey-1) * n_np_x + 2 + floor(ex / 4) * 2;
+            IEN(ee, 2) = (ey-1) * n_np_x + 3 + floor(ex / 4) * 2;
+            IEN(ee, 3) =  ey    * n_np_x + 2 + floor(ex / 4) * 2;
+        end
+        if mod(ex,4) == 0
+            IEN(ee, 1) = (ey-1) * n_np_x + 3 + (ex / 4 - 1) * 2;
+            IEN(ee, 2) =  ey    * n_np_x + 2 + (ex / 4 - 1) * 2;
+            IEN(ee, 3) =  ey    * n_np_x + 3 + (ex / 4 - 1) * 2;
+        end
     end
-    if mod(ex,2) == 0
-        IEN(ee, 1) =  ey    * n_np_x + ex / 2;
-        IEN(ee, 2) =  ey    * n_np_x + ex / 2 + 1;
-        IEN(ee, 3) = (ey-1) * n_np_x + ex / 2 + 1;
+    if mod(ey,1) == 0
+        if mod(ex,4) == 1
+            IEN(ee, 1) = (ey-1) * n_np_x + 1 + floor(ex / 4) * 2;
+            IEN(ee, 2) = (ey-1) * n_np_x + 2 + floor(ex / 4) * 2;
+            IEN(ee, 3) =  ey    * n_np_x + 1 + floor(ex / 4) * 2;
+        end
+        if mod(ex,4) == 2
+            IEN(ee, 1) =  (ey-1) * n_np_x + 2 + floor(ex / 4) * 2;
+            IEN(ee, 2) =   ey    * n_np_x + 1 + floor(ex / 4) * 2;
+            IEN(ee, 3) =   ey    * n_np_x + 2 + floor(ex / 4) * 2;
+        end
+        if mod(ex,4) == 3
+            IEN(ee, 1) = (ey-1) * n_np_x + 2 + floor(ex / 4) * 2;
+            IEN(ee, 2) =  ey    * n_np_x + 2 + floor(ex / 4) * 2;
+            IEN(ee, 3) =  ey    * n_np_x + 3 + floor(ex / 4) * 2;
+        end
+        if mod(ex,4) == 0
+            IEN(ee, 1) = (ey-1) * n_np_x + 2 + (ex / 4 - 1) * 2;
+            IEN(ee, 2) = (ey-1) * n_np_x + 3 + (ex / 4 - 1) * 2;
+            IEN(ee, 3) =  ey    * n_np_x + 3 + (ex / 4 - 1) * 2;
+        end
     end
-
   end
 end
 
@@ -136,6 +168,9 @@ for ee = 1 : n_el
         QQ = LM(ee, bb);
         if QQ > 0
           K(PP, QQ) = K(PP, QQ) + k_ele(aa, bb);
+          fprintf("(PP,QQ)=(%d,%d)\n",PP,QQ)
+          fprintf("(ee,aa,bb)=(%d,%d,%d)\n",ee,aa,bb)
+          fprintf("k_ele(aa,bb)=%.1f\n",k_ele(aa,bb))
         else
           % modify F with the boundary data
           % here we do nothing because the boundary data g is zero or
@@ -145,6 +180,8 @@ for ee = 1 : n_el
     end
   end
   K
+  k_ele
+  fprintf('^^^^^^^^^^^^^^^^^^^^^^^\n')
 end
 
 % solve the stiffness matrix
@@ -168,62 +205,62 @@ save("HEAT", "disp", "n_el_x", "n_el_y");
 
 % EOF
 %数据可视化
-n_sam = 10; %每个单元绘图样本点的个数
-xi_sam = -1 : (2/n_sam) : 1;
-yi_sam = -1 : (2/n_sam) : 1;
-
-x_sam = zeros(n_el * n_sam + 1, 1);
-y_sam = zeros(n_el * n_sam + 1, 1);
-u_sam = zeros(n_el * n_sam + 1, n_el * n_sam + 1); % store the exact solution value at sampling points
-uh_sam = zeros(n_el * n_sam + 1, n_el * n_sam + 1); % store the numerical solution value at sampling pts
-
-for ex = 1 : n_el_x
-    for ey = 1 : n_el_y
-        ee = (ey-1) * n_el_x + ex;
-        x_ele = x_coor( IEN(ee, :) );
-        y_ele = y_coor( IEN(ee, :) );
-        u_ele = disp( IEN(ee, :) );
-
-        if ex == n_el_x % 最后一个单元多绘制一个点
-            n_sam_end_x = n_sam+1;
-        else
-            n_sam_end_x = n_sam;
-        end
-
-        if ey == n_el_y % 最后一个单元多绘制一个点
-            n_sam_end_y = n_sam+1;
-        else
-            n_sam_end_y = n_sam;
-        end
-
-        for ll = 1 : n_sam_end_x
-            for kk = 1 : n_sam_end_y
-                x_l = 0.0;
-                y_l = 0.0;
-                u_l = 0.0;
-                for aa = 1 : n_en
-                    x_l = x_l + x_ele(aa) * Tria( aa, xi_sam(ll),yi_sam(kk)); % 局部向全局的坐标变换
-                    y_l = y_l + y_ele(aa) * Tria( aa, xi_sam(ll),yi_sam(kk)); % 局部向全局的坐标变换
-                    u_l = u_l + u_ele(aa) * Tria( aa, xi_sam(ll),yi_sam(kk)); % u(x)解的表达式
-                end
-
-                x_sam( (ex-1)*n_sam + ll ) = x_l*hx;
-                y_sam( (ey-1)*n_sam + kk ) = y_l*hy;
-                uh_sam( (ex-1)*n_sam + ll, (ey-1)*n_sam + kk ) = u_l;
-                u_sam( (ex-1)*n_sam + ll, (ey-1)*n_sam + kk ) = exact(x_l,y_l);
-            end
-        end
-    end
-end
-figure
-surf(x_sam, y_sam, u_sam);
-title("exact solution")
-xlabel("x")
-ylabel("y")
-zlabel("u")
-figure
-surf(x_sam, y_sam, uh_sam);
-title("numercial solution")
-xlabel("x")
-ylabel("y")
-zlabel("u^h")
+% n_sam = 10; %每个单元绘图样本点的个数
+% xi_sam = -1 : (2/n_sam) : 1;
+% yi_sam = -1 : (2/n_sam) : 1;
+% 
+% x_sam = zeros(n_el * n_sam + 1, 1);
+% y_sam = zeros(n_el * n_sam + 1, 1);
+% u_sam = zeros(n_el * n_sam + 1, n_el * n_sam + 1); % store the exact solution value at sampling points
+% uh_sam = zeros(n_el * n_sam + 1, n_el * n_sam + 1); % store the numerical solution value at sampling pts
+% 
+% for ex = 1 : n_el_x
+%     for ey = 1 : n_el_y
+%         ee = (ey-1) * n_el_x + ex;
+%         x_ele = x_coor( IEN(ee, :) );
+%         y_ele = y_coor( IEN(ee, :) );
+%         u_ele = disp( IEN(ee, :) );
+% 
+%         if ex == n_el_x % 最后一个单元多绘制一个点
+%             n_sam_end_x = n_sam+1;
+%         else
+%             n_sam_end_x = n_sam;
+%         end
+% 
+%         if ey == n_el_y % 最后一个单元多绘制一个点
+%             n_sam_end_y = n_sam+1;
+%         else
+%             n_sam_end_y = n_sam;
+%         end
+% 
+%         for ll = 1 : n_sam_end_x
+%             for kk = 1 : n_sam_end_y
+%                 x_l = 0.0;
+%                 y_l = 0.0;
+%                 u_l = 0.0;
+%                 for aa = 1 : n_en
+%                     x_l = x_l + x_ele(aa) * Tria( aa, xi_sam(ll),yi_sam(kk)); % 局部向全局的坐标变换
+%                     y_l = y_l + y_ele(aa) * Tria( aa, xi_sam(ll),yi_sam(kk)); % 局部向全局的坐标变换
+%                     u_l = u_l + u_ele(aa) * Tria( aa, xi_sam(ll),yi_sam(kk)); % u(x)解的表达式
+%                 end
+% 
+%                 x_sam( (ex-1)*n_sam + ll ) = x_l*hx;
+%                 y_sam( (ey-1)*n_sam + kk ) = y_l*hy;
+%                 uh_sam( (ex-1)*n_sam + ll, (ey-1)*n_sam + kk ) = u_l;
+%                 u_sam( (ex-1)*n_sam + ll, (ey-1)*n_sam + kk ) = exact(x_l,y_l);
+%             end
+%         end
+%     end
+% end
+% figure
+% surf(x_sam, y_sam, u_sam);
+% title("exact solution")
+% xlabel("x")
+% ylabel("y")
+% zlabel("u")
+% figure
+% surf(x_sam, y_sam, uh_sam);
+% title("numercial solution")
+% xlabel("x")
+% ylabel("y")
+% zlabel("u^h")
