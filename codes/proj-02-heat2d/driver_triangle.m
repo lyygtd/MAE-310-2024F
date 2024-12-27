@@ -18,8 +18,8 @@ eta =    [1/6, 2/3, 1/6];
 
 % mesh generation
 n_en   = 3;               % number of nodes in an element
-n_el_x = 4;               % number of elements in x-dir  直接将四边形网格按对角线一分为二的三角形网格,网格数量为原来的两倍
-n_el_y = 4;               % number of elements in y-dir
+n_el_x = 3;               % number of elements in x-dir  直接将四边形网格按对角线一分为二的三角形网格,网格数量为原来的两倍
+n_el_y = 3;               % number of elements in y-dir
 n_el   = n_el_x * n_el_y * 2; % total number of elements
 
 n_np_x = n_el_x + 1;      % number of nodal points in x-dir
@@ -49,7 +49,7 @@ IEN = zeros(n_el, n_en);
 for ex = 1 : n_el_x
   for ey = 1 : n_el_y/2
     ee = (ey-1) * n_el_x + ex; % element index
-    if mod(ey,1) == 1
+    if mod(ey,2) == 1
         if mod(ex,4) == 1
             IEN(ee, 1) = (ey-1) * n_np_x + 1 + floor(ex / 4) * 2;
             IEN(ee, 2) =  ey    * n_np_x + 1 + floor(ex / 4) * 2;
@@ -71,7 +71,7 @@ for ex = 1 : n_el_x
             IEN(ee, 3) =  ey    * n_np_x + 3 + (ex / 4 - 1) * 2;
         end
     end
-    if mod(ey,1) == 0
+    if mod(ey,2) == 0
         if mod(ex,4) == 1
             IEN(ee, 1) = (ey-1) * n_np_x + 1 + floor(ex / 4) * 2;
             IEN(ee, 2) = (ey-1) * n_np_x + 2 + floor(ex / 4) * 2;
@@ -168,9 +168,9 @@ for ee = 1 : n_el
         QQ = LM(ee, bb);
         if QQ > 0
           K(PP, QQ) = K(PP, QQ) + k_ele(aa, bb);
-          fprintf("(PP,QQ)=(%d,%d)\n",PP,QQ)
-          fprintf("(ee,aa,bb)=(%d,%d,%d)\n",ee,aa,bb)
-          fprintf("k_ele(aa,bb)=%.1f\n",k_ele(aa,bb))
+          % fprintf("(PP,QQ)=(%d,%d)\n",PP,QQ)
+          % fprintf("(ee,aa,bb)=(%d,%d,%d)\n",ee,aa,bb)
+          % fprintf("k_ele(aa,bb)=%.1f\n",k_ele(aa,bb))
         else
           % modify F with the boundary data
           % here we do nothing because the boundary data g is zero or
@@ -179,9 +179,9 @@ for ee = 1 : n_el
       end  
     end
   end
-  K
-  k_ele
-  fprintf('^^^^^^^^^^^^^^^^^^^^^^^\n')
+  % K
+  % k_ele
+  % fprintf('^^^^^^^^^^^^^^^^^^^^^^^\n')
 end
 
 % solve the stiffness matrix
