@@ -18,8 +18,8 @@ eta =    [1/6, 2/3, 1/6];
 
 % mesh generation
 n_en   = 3;               % number of nodes in an element
-n_el_x = 7;               % number of elements in x-dir  直接将四边形网格按对角线一分为二的三角形网格,网格数量为原来的两倍
-n_el_y = 7;               % number of elements in y-dir
+n_el_x = 60;               % number of elements in x-dir  直接将四边形网格按对角线一分为二的三角形网格,网格数量为原来的两倍
+n_el_y = 60;               % number of elements in y-dir
 n_el   = n_el_x * n_el_y * 2; % total number of elements
 
 n_np_x = n_el_x + 1;      % number of nodal points in x-dir
@@ -49,49 +49,22 @@ IEN = zeros(n_el, n_en);
 for ex = 1 : n_el_x
   for ey = 1 : n_el_y/2
     ee = (ey-1) * n_el_x + ex; % element index
-    if mod(ey,2) == 1
-        if mod(ex,4) == 1
-            IEN(ee, 1) = (ey-1) * n_np_x + 1 + floor(ex / 4) * 2;
-            IEN(ee, 2) =  ey    * n_np_x + 1 + floor(ex / 4) * 2;
-            IEN(ee, 3) =  ey    * n_np_x + 2 + floor(ex / 4) * 2;
-        end
-        if mod(ex,4) == 2
-            IEN(ee, 1) =  (ey-1) * n_np_x + 1 + floor(ex / 4) * 2;
-            IEN(ee, 2) =  (ey-1) * n_np_x + 2 + floor(ex / 4) * 2;
-            IEN(ee, 3) =   ey    * n_np_x + 2 + floor(ex / 4) * 2;
-        end
-        if mod(ex,4) == 3
-            IEN(ee, 1) = (ey-1) * n_np_x + 2 + floor(ex / 4) * 2;
-            IEN(ee, 2) = (ey-1) * n_np_x + 3 + floor(ex / 4) * 2;
-            IEN(ee, 3) =  ey    * n_np_x + 2 + floor(ex / 4) * 2;
-        end
-        if mod(ex,4) == 0
-            IEN(ee, 1) = (ey-1) * n_np_x + 3 + (ex / 4 - 1) * 2;
-            IEN(ee, 2) =  ey    * n_np_x + 2 + (ex / 4 - 1) * 2;
-            IEN(ee, 3) =  ey    * n_np_x + 3 + (ex / 4 - 1) * 2;
-        end
-    end
-    if mod(ey,2) == 0
-        if mod(ex,4) == 1
-            IEN(ee, 1) = (ey-1) * n_np_x + 1 + floor(ex / 4) * 2;
-            IEN(ee, 2) = (ey-1) * n_np_x + 2 + floor(ex / 4) * 2;
-            IEN(ee, 3) =  ey    * n_np_x + 1 + floor(ex / 4) * 2;
-        end
-        if mod(ex,4) == 2
-            IEN(ee, 1) =  (ey-1) * n_np_x + 2 + floor(ex / 4) * 2;
-            IEN(ee, 2) =   ey    * n_np_x + 1 + floor(ex / 4) * 2;
-            IEN(ee, 3) =   ey    * n_np_x + 2 + floor(ex / 4) * 2;
-        end
-        if mod(ex,4) == 3
-            IEN(ee, 1) = (ey-1) * n_np_x + 2 + floor(ex / 4) * 2;
-            IEN(ee, 2) =  ey    * n_np_x + 2 + floor(ex / 4) * 2;
-            IEN(ee, 3) =  ey    * n_np_x + 3 + floor(ex / 4) * 2;
-        end
-        if mod(ex,4) == 0
-            IEN(ee, 1) = (ey-1) * n_np_x + 2 + (ex / 4 - 1) * 2;
-            IEN(ee, 2) = (ey-1) * n_np_x + 3 + (ex / 4 - 1) * 2;
-            IEN(ee, 3) =  ey    * n_np_x + 3 + (ex / 4 - 1) * 2;
-        end
+    if mod(ex,4) == 1
+        IEN(ee, 1) = (ey-1) * n_np_x + floor(ex/4)*2 + 1;
+        IEN(ee, 2) =  ey    * n_np_x + floor(ex/4)*2 + 1;
+        IEN(ee, 3) =  ey    * n_np_x + floor(ex/4)*2 + 2 ; 
+    elseif mod(ex,4) == 2
+        IEN(ee, 1) = (ey-1) * n_np_x + floor(ex/4)*2 + 1;
+        IEN(ee, 2) = (ey-1) * n_np_x + floor(ex/4)*2 + 2;
+        IEN(ee, 3) =  ey    * n_np_x + floor(ex/4)*2 + 2;
+    elseif mod(ex,4) == 3
+        IEN(ee, 1) = (ey-1) * n_np_x + floor(ex/4)*2 + 2;
+        IEN(ee, 2) = (ey-1) * n_np_x + floor(ex/4)*2 + 3;
+        IEN(ee, 3) =  ey    * n_np_x + floor(ex/4)*2 + 2; 
+    elseif mod(ex,4) == 0
+        IEN(ee, 1) = (ey-1) * n_np_x + ex/4 + 2;
+        IEN(ee, 2) =  ey    * n_np_x + ex/4 + 1;
+        IEN(ee, 3) =  ey    * n_np_x + ex/4 + 2;
     end
   end
 end
@@ -202,34 +175,22 @@ end
 % save the solution vector and number of elements to disp with name
 % HEAT.mat
 n_el_y = n_el_y/2;
+n_el_x = n_el_x/2;
 save("HEAT", "disp", "n_el_x", "n_el_y");
 
 % EOF
 %数据可视化
-uh = zeros(n_np_x, n_np_x);
-for ee = 1 : n_el
-    node_index_ele = IEN(ee,:);
-    for aa = 1:n_en
-        i = mod(IEN(ee,aa),n_np_x);
-        j = floor(IEN(ee,aa)/n_np_x)+1;
-        if i == 0
-            i = n_np_x;
-            j = IEN(ee,aa)/n_np_x;
-        end
-        x_ele = i * hx;
-        y_ele = j * hy;
-        if aa == 1
-            uh(i,j) = uh(i,j) - disp(IEN(ee,aa))*Tria(aa,0,0);
-        elseif aa == 2
-            uh(i,j) = uh(i,j) - disp(IEN(ee,aa))*Tria(aa,1,0);
-        elseif aa == 3
-            uh(i,j) = uh(i,j) - disp(IEN(ee,aa))*Tria(aa,0,1);
-        end
-    end
-end
-figure
-surf(x_coor(1:n_np_x), y_coor(1:n_np_y:n_np_x*n_np_y), uh);
-title("numercial solution")
-xlabel("x")
-ylabel("y")
-zlabel("u^h")
+% uh = zeros(n_np_x, n_np_y);
+% for AA = 1 : n_np_x * n_np_y
+%     if mod(AA,n_np_x) ~= 0
+%         uh(mod(AA,n_np_x),floor(AA/n_np_x)+1) = disp(AA);
+%     else
+%         uh(n_np_x,floor(AA/n_np_x)) = disp(AA);
+%     end
+% end
+% figure
+% surf(x_coor(1:n_np_x), y_coor(1:n_np_y:n_np_x*n_np_y), uh);
+% title("numercial solution")
+% xlabel("x")
+% ylabel("y")
+% zlabel("u^h")

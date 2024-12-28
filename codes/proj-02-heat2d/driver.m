@@ -18,8 +18,8 @@ n_int     = n_int_xi * n_int_eta;
 
 % mesh generation
 n_en   = 4;               % number of nodes in an element
-n_el_x = 3;               % number of elements in x-dir
-n_el_y = 3;               % number of elements in y-dir
+n_el_x = 10;               % number of elements in x-dir
+n_el_y = 10;               % number of elements in y-dir
 n_el   = n_el_x * n_el_y; % total number of elements
 
 n_np_x = n_el_x + 1;      % number of nodal points in x-dir
@@ -69,8 +69,7 @@ n_eq = counter;
 LM = ID(IEN);
 
 % allocate the stiffness matrix and load vector
-% K = spalloc(n_eq, n_eq, 9 * n_eq);
-K = zeros(n_eq,n_eq);
+K = spalloc(n_eq, n_eq, 9 * n_eq);
 F = zeros(n_eq, 1);
 
 % loop over element to assembly the matrix and vector
