@@ -47,27 +47,38 @@ end
 % IEN array
 IEN = zeros(n_el, n_en);
 for ex = 1 : n_el_x
-  for ey = 1 : n_el_y/2
-    ee = (ey-1) * n_el_x + ex; % element index
-    if mod(ex,4) == 1
-        IEN(ee, 1) = (ey-1) * n_np_x + floor(ex/4)*2 + 1;
-        IEN(ee, 2) =  ey    * n_np_x + floor(ex/4)*2 + 1;
-        IEN(ee, 3) =  ey    * n_np_x + floor(ex/4)*2 + 2 ; 
-    elseif mod(ex,4) == 2
-        IEN(ee, 1) = (ey-1) * n_np_x + floor(ex/4)*2 + 1;
-        IEN(ee, 2) = (ey-1) * n_np_x + floor(ex/4)*2 + 2;
-        IEN(ee, 3) =  ey    * n_np_x + floor(ex/4)*2 + 2;
-    elseif mod(ex,4) == 3
-        IEN(ee, 1) = (ey-1) * n_np_x + floor(ex/4)*2 + 2;
-        IEN(ee, 2) = (ey-1) * n_np_x + floor(ex/4)*2 + 3;
-        IEN(ee, 3) =  ey    * n_np_x + floor(ex/4)*2 + 2; 
-    elseif mod(ex,4) == 0
-        IEN(ee, 1) = (ey-1) * n_np_x + ex/4 + 2;
-        IEN(ee, 2) =  ey    * n_np_x + ex/4 + 1;
-        IEN(ee, 3) =  ey    * n_np_x + ex/4 + 2;
+    for ey = 1 : n_el_y/2
+        ee = (ey-1) * n_el_x + ex; % element index
+        % if mod(ex,4) == 1
+        %     IEN(ee, 1) = (ey-1) * n_np_x + floor(ex/4)*2 + 1;
+        %     IEN(ee, 2) =  ey    * n_np_x + floor(ex/4)*2 + 1;
+        %     IEN(ee, 3) =  ey    * n_np_x + floor(ex/4)*2 + 2 ;
+        % elseif mod(ex,4) == 2
+        %     IEN(ee, 1) = (ey-1) * n_np_x + floor(ex/4)*2 + 1;
+        %     IEN(ee, 2) = (ey-1) * n_np_x + floor(ex/4)*2 + 2;
+        %     IEN(ee, 3) =  ey    * n_np_x + floor(ex/4)*2 + 2;
+        % elseif mod(ex,4) == 3
+        %     IEN(ee, 1) = (ey-1) * n_np_x + floor(ex/4)*2 + 2;
+        %     IEN(ee, 2) = (ey-1) * n_np_x + floor(ex/4)*2 + 3;
+        %     IEN(ee, 3) =  ey    * n_np_x + floor(ex/4)*2 + 2;
+        % elseif mod(ex,4) == 0
+        %     IEN(ee, 1) = (ey-1) * n_np_x + ex/2 + 1;
+        %     IEN(ee, 2) =  ey    * n_np_x + ex/2;
+        %     IEN(ee, 3) =  ey    * n_np_x + ex/2 + 1;
+        % end
+        if mod(ex,2)==1
+        IEN(ee, 1) = (ey-1) * n_np_x + (ex+1)/2;
+        IEN(ee, 2) = (ey-1) * n_np_x + (ex+1)/2 + 1;
+        IEN(ee, 3) =  ey    * n_np_x + (ex+1)/2;
+        elseif mod(ex,2)==0
+        IEN(ee, 1) = (ey-1) * n_np_x + ex/2 + 1;
+        IEN(ee, 3) =  ey    * n_np_x + ex/2;
+        IEN(ee, 2) =  ey    * n_np_x + ex/2 + 1;
+        end
+
     end
-  end
 end
+
 
 % ID array
 ID = zeros(n_np,1);
@@ -103,7 +114,11 @@ for ee = 1 : n_el
     dy_dxi = 0.0; dy_deta = 0.0;
     for aa = 1 : n_en
       x_l = x_l + x_ele(aa) * Tria(aa, xi(ll), eta(ll));  %坐标变换Mapping
-      y_l = y_l + y_ele(aa) * Tria(aa, xi(ll), eta(ll));    
+      y_l = y_l + y_ele(aa) * Tria(aa, xi(ll), eta(ll));
+      if x_l >1 || y_l>1 || x_l<0 || y_l<0
+          fprintf("%.2f",x_l)
+          fprintf("%.2f",y_l)
+      end
       [Na_xi, Na_eta] = Tria_grad(aa, xi(ll), eta(ll));
       dx_dxi  = dx_dxi  + x_ele(aa) * Na_xi;
       dx_deta = dx_deta + x_ele(aa) * Na_eta;
