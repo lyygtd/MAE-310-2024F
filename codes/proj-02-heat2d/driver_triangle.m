@@ -18,8 +18,8 @@ eta =    [1/6, 2/3, 1/6];
 
 % mesh generation
 n_en   = 3;               % number of nodes in an element
-n_el_x = 60;               % number of elements in x-dir  直接将四边形网格按对角线一分为二的三角形网格,网格数量为原来的两倍
-n_el_y = 60;               % number of elements in y-dir
+n_el_x = 5;               % number of elements in x-dir  直接将四边形网格按对角线一分为二的三角形网格,网格数量为原来的两倍
+n_el_y = 5;               % number of elements in y-dir
 n_el   = n_el_x * n_el_y * 2; % total number of elements
 
 n_np_x = n_el_x + 1;      % number of nodal points in x-dir

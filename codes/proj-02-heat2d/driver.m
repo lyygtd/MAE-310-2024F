@@ -18,8 +18,8 @@ n_int     = n_int_xi * n_int_eta;
 
 % mesh generation
 n_en   = 4;               % number of nodes in an element
-n_el_x = 10;               % number of elements in x-dir
-n_el_y = 10;               % number of elements in y-dir
+n_el_x = 5;               % number of elements in x-dir
+n_el_y = 5;               % number of elements in y-dir
 n_el   = n_el_x * n_el_y; % total number of elements
 
 n_np_x = n_el_x + 1;      % number of nodal points in x-dir
@@ -211,10 +211,11 @@ title("exact solution")
 xlabel("x")
 ylabel("y")
 zlabel("u")
+shading interp
 figure
 surf(x_sam, y_sam, uh_sam);
-title("numercial solution")
+title("Quad numercial solution")
 xlabel("x")
 ylabel("y")
 zlabel("u^h")
-
+shading interp
