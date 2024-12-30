@@ -196,8 +196,10 @@ for ee = 1 : n_el
   end
 end
 
-e_0_top = sqrt(e_0_top); e_0_bot = sqrt(e_0_bot);
-e_1_top = sqrt(e_1_top); e_1_bot = sqrt(e_1_bot);
+e_0_top = sqrt(e_0_top);
+e_0_bot = sqrt(e_0_bot);
+e_1_top = sqrt(e_1_top);
+e_1_bot = sqrt(e_1_bot);
 
 e_0 = e_0_top/e_0_bot;
 e_1 = e_1_top/e_1_bot;

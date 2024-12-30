@@ -15,6 +15,7 @@ xlabel("x")
 ylabel("y")
 zlabel("z")
 shading interp
+title("Tria numercial solution")
 
 az = -61;
 el = 20;
