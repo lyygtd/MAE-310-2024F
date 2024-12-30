@@ -1,11 +1,14 @@
-clear all; clc;
-
+function [e_0,e_1] = Erro_estimate_quia(nel)
 kappa = 1.0; % conductivity
 
 % exact solution
 exact = @(x,y) x*(1-x)*y*(1-y);
 exact_x = @(x,y) (1-2*x)*y*(1-y);
 exact_y = @(x,y) x*(1-x)*(1-2*y);
+exact_x_x = @(x,y) 2*y*(y-1);
+exact_y_y = @(x,y) 2*x*(x-1);
+exact_x_y = @(x,y) (1-2*x)*(1-2*y);
+
 
 f = @(x,y) 2.0*kappa*x*(1-x) + 2.0*kappa*y*(1-y); % source term
 
@@ -18,8 +21,8 @@ n_int     = n_int_xi * n_int_eta;
 
 % mesh generation
 n_en   = 4;               % number of nodes in an element
-n_el_x = 5;               % number of elements in x-dir
-n_el_y = 5;               % number of elements in y-dir
+n_el_x = nel;               % number of elements in x-dir
+n_el_y = nel;               % number of elements in y-dir
 n_el   = n_el_x * n_el_y; % total number of elements
 
 n_np_x = n_el_x + 1;      % number of nodal points in x-dir
@@ -151,94 +154,52 @@ for ii = 1 : n_np
   end
 end
 
-% save the solution vector and number of elements to disp with name
-% HEAT.mat
-save("HEAT", "disp", "n_el_x", "n_el_y");
 
-% EOF
 
-%数据可视化
-n_sam = 10; %每个单元绘图样本点的个数
-xi_sam = -1 : (2/n_sam) : 1;
-yi_sam = -1 : (2/n_sam) : 1;
+% error estimate
+e_0_top = 0.0; e_0_bot = 0.0; e_1_top = 0.0; e_1_bot = 0.0;
 
-x_sam = zeros(n_el * n_sam + 1, 1);
-y_sam = zeros(n_el * n_sam + 1, 1);
-u_sam = zeros(n_el * n_sam + 1, n_el * n_sam + 1); % store the exact solution value at sampling points
-uh_sam = zeros(n_el * n_sam + 1, n_el * n_sam + 1); % store the numerical solution value at sampling pts
+for ee = 1 : n_el
+  x_ele = x_coor( IEN(ee, :) );
+  y_ele = y_coor( IEN(ee, :) );
+  u_ele = disp( IEN(ee, :) );
 
-for ex = 1 : n_el_x
-    for ey = 1 : n_el_y
-        ee = (ey-1) * n_el_x + ex;
-        x_ele = x_coor( IEN(ee, :) );
-        y_ele = y_coor( IEN(ee, :) );
-        u_ele = disp( IEN(ee, :) );
-
-        if ex == n_el_x % 最后一个单元多绘制一个点
-            n_sam_end_x = n_sam+1;
-        else
-            n_sam_end_x = n_sam;
-        end
-
-        if ey == n_el_y % 最后一个单元多绘制一个点
-            n_sam_end_y = n_sam+1;
-        else
-            n_sam_end_y = n_sam;
-        end
-
-        for ll = 1 : n_sam_end_x
-            for kk = 1 : n_sam_end_y
-                x_l = 0.0;
-                y_l = 0.0;
-                u_l = 0.0;
-                for aa = 1 : n_en
-                    x_l = x_l + x_ele(aa) * Quad( aa, xi_sam(ll),yi_sam(kk)); % 局部向全局的坐标变换
-                    y_l = y_l + y_ele(aa) * Quad( aa, xi_sam(ll),yi_sam(kk)); % 局部向全局的坐标变换
-                    u_l = u_l + u_ele(aa) * Quad( aa, xi_sam(ll),yi_sam(kk)); % u(x)解的表达式
-                end
-
-                x_sam( (ex-1)*n_sam + ll ) = x_l;
-                y_sam( (ey-1)*n_sam + kk ) = y_l;
-                uh_sam( (ex-1)*n_sam + ll, (ey-1)*n_sam + kk ) = u_l;
-                u_sam( (ex-1)*n_sam + ll, (ey-1)*n_sam + kk ) = exact(x_l,y_l);
-            end
-        end
+  for ll = 1 : n_int_xi
+    x_l = 0.0; y_l = 0.0;
+    uh = 0.0;
+    dx_dxi = 0.0; dy_dxi = 0.0;
+    dx_deta = 0.0; dy_deta = 0.0;
+    uh_xi = 0.0;uh_eta = 0.0;
+    for aa = 1 : n_en
+      x_l    = x_l    + x_ele(aa) * Quad(aa, xi(ll), eta(ll));
+      y_l    = y_l    + y_ele(aa) * Quad(aa, xi(ll), eta(ll));
+      uh     = uh     + u_ele(aa) * Quad(aa, xi(ll), eta(ll));
+      [Na_xi, Na_eta] = Quad_grad(aa, xi(ll), eta(ll));
+      dx_dxi  = dx_dxi  + x_ele(aa) * Na_xi;
+      dx_deta = dx_deta + x_ele(aa) * Na_eta;
+      dy_dxi  = dy_dxi  + y_ele(aa) * Na_xi;
+      dy_deta = dy_deta + y_ele(aa) * Na_eta;
+      uh_xi  = uh_xi  + u_ele(aa) * Na_xi;
+      uh_eta = uh_eta + u_ele(aa) * Na_eta;
     end
-end
-figure
-surf(x_sam, y_sam, u_sam);
-title("exact solution")
-xlabel("x")
-ylabel("y")
-zlabel("u")
-shading interp
-figure
-surf(x_sam, y_sam, uh_sam);
-title("Quad numercial solution")
-xlabel("x")
-ylabel("y")
-zlabel("u^h")
-shading interp
+    detJ = dx_dxi * dy_deta - dx_deta * dy_dxi;
+    uh_x = (uh_xi *dy_deta - uh_eta * dy_dxi)/detJ;
+    uh_y = (-uh_xi *dx_deta + uh_eta * dx_dxi)/detJ;
 
 
-e_0 = [];
-e_1 = [];
-for nel = 2:2:64
-    [e_0_temp, e_1_temp] = Erro_estimate_quia(nel);
-    e_0 = [e_0,e_0_temp];
-    e_1 = [e_1,e_1_temp];
+    e_0_top = e_0_top + weight(ll) * (uh - exact(x_l,y_l))^2 * detJ;
+    e_0_bot = e_0_bot + weight(ll) * (exact(x_l,y_l)^2 + exact_x(x_l,y_l)^2 + exact_y(x_l,y_l)^2 + exact_x_x(x_l,y_l)^2 + exact_y_y(x_l,y_l)^2 + 2*exact_x_y(x_l,y_l)^2) * detJ;
+
+    e_1_top = e_1_top + weight(ll) * ((uh - exact(x_l,y_l))^2 + (uh_x- exact_x(x_l, y_l))^2 + (uh_y - exact_y(x_l, y_l))^2) * detJ;
+    e_1_bot = e_1_bot + weight(ll) * (exact(x_l,y_l)^2 + exact_x(x_l,y_l)^2 + exact_y(x_l,y_l)^2 + exact_x_x(x_l,y_l)^2 + exact_y_y(x_l,y_l)^2 + 2*exact_x_y(x_l,y_l)^2) * detJ;
+
+  end
 end
-nel = 2:2:64;
-nel = 1./nel;
-figure
-plot(log(nel),log(e_0),'LineWidth',1)
-xlabel("log(h_e_l)")
-ylabel("log(e_0\_error)")
-p=polyfit(log(nel),log(e_0),1);
-slope_e_0 = p(1)
-figure
-plot(log(nel),log(e_1),'LineWidth',1)
-xlabel("log(h_e_l)")
-ylabel("log(e_1\_error)")
-p=polyfit(log(nel),log(e_1),1);
-slope_e_1 = p(1)
+
+e_0_top = sqrt(e_0_top); e_0_bot = sqrt(e_0_bot);
+e_1_top = sqrt(e_1_top); e_1_bot = sqrt(e_1_bot);
+
+e_0 = e_0_top/e_0_bot;
+e_1 = e_1_top/e_1_bot;
+
+
