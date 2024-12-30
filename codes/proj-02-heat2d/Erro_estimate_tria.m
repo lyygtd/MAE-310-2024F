@@ -1,11 +1,14 @@
-clear all; clc;
-
+function [e_0,e_1] = Erro_estimate_tria(nel)
 kappa = 1.0; % conductivity
 
 % exact solution
 exact = @(x,y) x*(1-x)*y*(1-y);
 exact_x = @(x,y) (1-2*x)*y*(1-y);
 exact_y = @(x,y) x*(1-x)*(1-2*y);
+exact_x_x = @(x,y) 2*y*(y-1);
+exact_y_y = @(x,y) 2*x*(x-1);
+exact_x_y = @(x,y) (1-2*x)*(1-2*y);
+
 
 f = @(x,y) 2.0*kappa*x*(1-x) + 2.0*kappa*y*(1-y); % source term
 
@@ -18,8 +21,8 @@ eta =    [1/6, 2/3, 1/6];
 
 % mesh generation
 n_en   = 3;               % number of nodes in an element
-n_el_x = 5;               % number of elements in x-dir  直接将四边形网格按对角线一分为二的三角形网格,网格数量为原来的两倍
-n_el_y = 5;               % number of elements in y-dir
+n_el_x = nel;               % number of elements in x-dir  直接将四边形网格按对角线一分为二的三角形网格,网格数量为原来的两倍
+n_el_y = nel;               % number of elements in y-dir
 n_el   = n_el_x * n_el_y * 2; % total number of elements
 
 n_np_x = n_el_x + 1;      % number of nodal points in x-dir
@@ -187,31 +190,48 @@ for ii = 1 : n_np
   end
 end
 
-% save the solution vector and number of elements to disp with name
-% HEAT.mat
-n_el_y = n_el_y/2;
-n_el_x = n_el_x/2;
-save("HEAT", "disp", "n_el_x", "n_el_y");
-
 % error estimate
-e_0 = [];
-e_1 = [];
-for nel = 2:2:64
-    [e_0_temp, e_1_temp] = Erro_estimate_tria(nel);
-    e_0 = [e_0,e_0_temp];
-    e_1 = [e_1,e_1_temp];
+e_0_top = 0.0; e_0_bot = 0.0; e_1_top = 0.0; e_1_bot = 0.0;
+
+for ee = 1 : n_el
+  x_ele = x_coor( IEN(ee, :) );
+  y_ele = y_coor( IEN(ee, :) );
+  u_ele = disp( IEN(ee, :) );
+
+  for ll = 1 : n_int
+    x_l = 0.0; y_l = 0.0;
+    uh = 0.0;
+    dx_dxi = 0.0; dy_dxi = 0.0;
+    dx_deta = 0.0; dy_deta = 0.0;
+    uh_xi = 0.0;uh_eta = 0.0;
+    for aa = 1 : n_en
+      x_l    = x_l    + x_ele(aa) * Tria(aa, xi(ll), eta(ll));
+      y_l    = y_l    + y_ele(aa) * Tria(aa, xi(ll), eta(ll));
+      uh     = uh     + u_ele(aa) * Tria(aa, xi(ll), eta(ll));
+      [Na_xi, Na_eta] = Tria_grad(aa, xi(ll), eta(ll));
+      dx_dxi  = dx_dxi  + x_ele(aa) * Na_xi;
+      dx_deta = dx_deta + x_ele(aa) * Na_eta;
+      dy_dxi  = dy_dxi  + y_ele(aa) * Na_xi;
+      dy_deta = dy_deta + y_ele(aa) * Na_eta;
+      uh_xi  = uh_xi  + u_ele(aa) * Na_xi;
+      uh_eta = uh_eta + u_ele(aa) * Na_eta;
+    end
+    detJ = dx_dxi * dy_deta - dx_deta * dy_dxi;
+    uh_x = (uh_xi *dy_deta - uh_eta * dy_dxi)/detJ;
+    uh_y = (-uh_xi *dx_deta + uh_eta * dx_dxi)/detJ;
+
+
+    e_0_top = e_0_top + weight(ll) * (uh - exact(x_l,y_l))^2 * detJ;
+    e_0_bot = e_0_bot + weight(ll) * (exact(x_l,y_l)^2 + exact_x(x_l,y_l)^2 + exact_y(x_l,y_l)^2 + exact_x_x(x_l,y_l)^2 + exact_y_y(x_l,y_l)^2 + 2*exact_x_y(x_l,y_l)^2) * detJ;
+
+    e_1_top = e_1_top + weight(ll) * ((uh - exact(x_l,y_l))^2 + (uh_x- exact_x(x_l, y_l))^2 + (uh_y - exact_y(x_l, y_l))^2) * detJ;
+    e_1_bot = e_1_bot + weight(ll) * (exact(x_l,y_l)^2 + exact_x(x_l,y_l)^2 + exact_y(x_l,y_l)^2 + exact_x_x(x_l,y_l)^2 + exact_y_y(x_l,y_l)^2 + 2*exact_x_y(x_l,y_l)^2) * detJ;
+
+  end
 end
-nel = 2:2:64;
-nel = 1./nel;
-figure
-plot(log(nel),log(e_0),'LineWidth',1)
-xlabel("log(h_e_l)")
-ylabel("log(e_0\_error)")
-p=polyfit(log(nel),log(e_0),1);
-slope_e_0 = p(1)
-figure
-plot(log(nel),log(e_1),'LineWidth',1)
-xlabel("log(h_e_l)")
-ylabel("log(e_1\_error)")
-p=polyfit(log(nel),log(e_1),1);
-slope_e_1 = p(1)
+
+e_0_top = sqrt(e_0_top); e_0_bot = sqrt(e_0_bot);
+e_1_top = sqrt(e_1_top); e_1_bot = sqrt(e_1_bot);
+
+e_0 = e_0_top/e_0_bot;
+e_1 = e_1_top/e_1_bot;

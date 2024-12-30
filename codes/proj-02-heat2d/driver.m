@@ -220,7 +220,7 @@ ylabel("y")
 zlabel("u^h")
 shading interp
 
-
+% error estimate
 e_0 = [];
 e_1 = [];
 for nel = 2:2:64
