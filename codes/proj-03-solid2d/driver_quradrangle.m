@@ -7,7 +7,7 @@ kappa = 1.0; % conductivity
 % exact_x = @(x,y) (1-2*x)*y*(1-y);
 % exact_y = @(x,y) x*(1-x)*(1-2*y);
 % 
-% f = @(x,y) 2.0*kappa*x*(1-x) + 2.0*kappa*y*(1-y); % source term
+f = @(x,y) 2.0*kappa*x*(1-x) + 2.0*kappa*y*(1-y); % source term
 
 % quadrature rule
 n_int_xi  = 3;
@@ -98,12 +98,22 @@ n_np   = length(x_coor); % total number of nodal points
 % ID array
 ID = zeros(n_np,1);
 counter = 0;
-for ny = 2 : n_np_y - 1
-  for nx = 2 : n_np_x - 1
-    index = (ny-1)*n_np_x + nx;
-    counter = counter + 1;
-    ID(index) = counter;  
-  end
+for nn = 1 : n_np
+    if x_coor(nn) == -1 %left
+        ID(nn) = 0;
+    elseif y_coor(nn) == -1 %bottom
+        ID(nn) = 0;
+    elseif x_coor(nn) == 1 %right
+        ID(nn) = 0;
+    elseif y_coor(nn) == 1 %top
+        ID(nn) = 0;
+    elseif abs(sqrt((x_coor(nn)+1)^2 + (y_coor(nn)+1)^2) - 0.5) <= 1e-12 %circle
+        % abs(sqrt((x_coor(nn)+1)^2 + (y_coor(nn)+1)^2) - 0.5)
+        ID(nn) = 0;
+    else
+        counter = counter +1;
+        ID(nn) = counter;
+    end
 end
 
 n_eq = counter;
@@ -195,7 +205,7 @@ end
 
 % save the solution vector and number of elements to disp with name
 % HEAT.mat
-save("HEAT", "disp", "n_el_x", "n_el_y");
+save("HEAT", "disp", "x_coor", "y_coor");
 
 % EOF
 

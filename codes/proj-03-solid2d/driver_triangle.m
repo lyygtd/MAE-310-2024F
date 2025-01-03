@@ -100,12 +100,22 @@ n_np   = length(x_coor); % total number of nodal points
 % ID array
 ID = zeros(n_np,1);
 counter = 0;
-for ny = 2 : n_np_y - 1
-  for nx = 2 : n_np_x - 1
-    index = (ny-1)*n_np_x + nx;
-    counter = counter + 1;
-    ID(index) = counter;  
-  end
+for nn = 1 : n_np
+    if x_coor(nn) == -1 %left
+        ID(nn) = 0;
+    elseif y_coor(nn) == -1 %bottom
+        ID(nn) = 0;
+    elseif x_coor(nn) == 1 %right
+        ID(nn) = 0;
+    elseif y_coor(nn) == 1 %top
+        ID(nn) = 0;
+    elseif abs(sqrt((x_coor(nn)+1)^2 + (y_coor(nn)+1)^2) - 0.5) <= 1e-12 %circle
+        % abs(sqrt((x_coor(nn)+1)^2 + (y_coor(nn)+1)^2) - 0.5)
+        ID(nn) = 0;
+    else
+        counter = counter +1;
+        ID(nn) = counter;
+    end
 end
 
 n_eq = counter;
@@ -132,10 +142,6 @@ for ee = 1 : n_el
     for aa = 1 : n_en
       x_l = x_l + x_ele(aa) * Tria(aa, xi(ll), eta(ll));  %坐标变换Mapping
       y_l = y_l + y_ele(aa) * Tria(aa, xi(ll), eta(ll));
-      if x_l >1 || y_l>1 || x_l<0 || y_l<0
-          fprintf("%.2f",x_l)
-          fprintf("%.2f",y_l)
-      end
       [Na_xi, Na_eta] = Tria_grad(aa, xi(ll), eta(ll));
       dx_dxi  = dx_dxi  + x_ele(aa) * Na_xi;
       dx_deta = dx_deta + x_ele(aa) * Na_eta;
@@ -206,29 +212,28 @@ end
 
 % save the solution vector and number of elements to disp with name
 % HEAT.mat
-n_el_y = n_el_y/2;
-n_el_x = n_el_x/2;
-save("HEAT", "disp", "n_el_x", "n_el_y");
+
+save("HEAT", "disp", "x_coor", "y_coor");
 
 % error estimate
-e_0 = [];
-e_1 = [];
-for nel = 2:2:64
-    [e_0_temp, e_1_temp] = Erro_estimate_tria(nel);
-    e_0 = [e_0,e_0_temp];
-    e_1 = [e_1,e_1_temp];
-end
-nel = 2:2:64;
-nel = 1./nel;
-figure
-plot(log(nel),log(e_0),'LineWidth',1)
-xlabel("log(h_e_l)")
-ylabel("log(e_0\_error)")
-p=polyfit(log(nel),log(e_0),1);
-slope_e_0 = p(1)
-figure
-plot(log(nel),log(e_1),'LineWidth',1)
-xlabel("log(h_e_l)")
-ylabel("log(e_1\_error)")
-p=polyfit(log(nel),log(e_1),1);
-slope_e_1 = p(1)
+% e_0 = [];
+% e_1 = [];
+% for nel = 2:2:64
+%     [e_0_temp, e_1_temp] = Erro_estimate_tria(nel);
+%     e_0 = [e_0,e_0_temp];
+%     e_1 = [e_1,e_1_temp];
+% end
+% nel = 2:2:64;
+% nel = 1./nel;
+% figure
+% plot(log(nel),log(e_0),'LineWidth',1)
+% xlabel("log(h_e_l)")
+% ylabel("log(e_0\_error)")
+% p=polyfit(log(nel),log(e_0),1);
+% slope_e_0 = p(1)
+% figure
+% plot(log(nel),log(e_1),'LineWidth',1)
+% xlabel("log(h_e_l)")
+% ylabel("log(e_1\_error)")
+% p=polyfit(log(nel),log(e_1),1);
+% slope_e_1 = p(1)
