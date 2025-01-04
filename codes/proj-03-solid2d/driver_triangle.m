@@ -82,8 +82,17 @@ while ischar(tline)
         rowDataPadded = [rowData; zeros(maxCols - numRows, 1)]';
         rowDataPadded = rowDataPadded(1:maxCols);
         if numRows == 8
-            IEN = [IEN; rowDataPadded(end-2:end)'];
-            n_el = n_el + 1;
+            if rowDataPadded(5) == 1
+                temp_ien = rowDataPadded(end-2 : end)';
+                sj = temp_ien(3);
+                temp_ien(3) = temp_ien(2);
+                temp_ien(2) = sj;
+                IEN = [IEN; temp_ien];
+                n_el = n_el + 1;
+            else
+                IEN = [IEN; rowDataPadded(end-2 : end)'];
+                n_el = n_el + 1;
+            end
         end
     end
     tline = fgetl(fileID);
@@ -213,7 +222,7 @@ end
 % save the solution vector and number of elements to disp with name
 % HEAT.mat
 
-save("HEAT", "disp", "x_coor", "y_coor");
+save("Solid-tria", "disp", "x_coor", "y_coor");
 
 % error estimate
 % e_0 = [];
