@@ -2,6 +2,7 @@ clear all; clc;
 
 kappa = 1.0; % conductivity
 
+
 % exact solution
 exact = @(x,y) x*(1-x)*y*(1-y);
 exact_x = @(x,y) (1-2*x)*y*(1-y);
@@ -104,7 +105,8 @@ n_en   = 3;               % number of nodes in an element
 n_np   = length(x_coor); % total number of nodal points
 
 
-
+gg = zeros(n_np,1); % g boundary condition
+hh = 1.0; % h boundaty condition
 
 % ID array
 ID = zeros(n_np,1);
@@ -121,6 +123,7 @@ for nn = 1 : n_np
     elseif abs(sqrt((x_coor(nn)+1)^2 + (y_coor(nn)+1)^2) - 0.5) <= 1e-12 %circle
         % abs(sqrt((x_coor(nn)+1)^2 + (y_coor(nn)+1)^2) - 0.5)
         ID(nn) = 0;
+        gg(nn) = 0;
     else
         counter = counter +1;
         ID(nn) = counter;
@@ -143,7 +146,8 @@ for ee = 1 : n_el
   
   k_ele = zeros(n_en, n_en); % element stiffness matrix
   f_ele = zeros(n_en, 1);    % element load vector
-  
+  g_ele = zeros(n_en, 1);    % element g boundary contition
+
   for ll = 1 : n_int
     x_l = 0.0; y_l = 0.0;
     dx_dxi = 0.0; dx_deta = 0.0;
@@ -175,6 +179,10 @@ for ee = 1 : n_el
         Nb_y = (-Nb_xi * dx_deta + Nb_eta * dx_dxi) / detJ;
         
         k_ele(aa, bb) = k_ele(aa,bb) + weight(ll) * detJ * kappa * (Na_x * Nb_x + Na_y * Nb_y);
+        if LM(ee, bb) == 0
+            g_ele(aa) = g_ele(aa) + weight(ll) * detJ * kappa * (Na_x * Nb_x + Na_y * Nb_y)*gg(IEN(ee,bb));
+        end
+
       end % end of bb loop
     end % end of aa loop
   end % end of quadrature loop
@@ -182,15 +190,13 @@ for ee = 1 : n_el
   for aa = 1 : n_en
     PP = LM(ee, aa);
     if PP > 0
-      F(PP) = F(PP) + f_ele(aa);
+      F(PP) = F(PP) + f_ele(aa)- g_ele(aa);
       
       for bb = 1 : n_en
         QQ = LM(ee, bb);
         if QQ > 0
           K(PP, QQ) = K(PP, QQ) + k_ele(aa, bb);
-          % fprintf("(PP,QQ)=(%d,%d)\n",PP,QQ)
-          % fprintf("(ee,aa,bb)=(%d,%d,%d)\n",ee,aa,bb)
-          % fprintf("k_ele(aa,bb)=%.1f\n",k_ele(aa,bb))
+          
         else
           % modify F with the boundary data
           % here we do nothing because the boundary data g is zero or
@@ -216,6 +222,7 @@ for ii = 1 : n_np
     disp(ii) = dn(index);
   else
     % modify disp with the g data. Here it does nothing because g is zero
+    disp(ii) = disp(ii) + gg(ii);
   end
 end
 

@@ -24,7 +24,7 @@ Plane Surface(1) = {1};
 Curve Loop(2) = {7, -1, -6, -5};
 Plane Surface(2) = {2};
 
-Transfinite Line{1, 2, 3, 4, 5, 6, 7} = 25;
+Transfinite Line{1, 2, 3, 4, 5, 6, 7} = 3;
 
 Transfinite Surface{1};
 Transfinite Surface{2};

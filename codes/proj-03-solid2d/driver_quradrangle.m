@@ -2,6 +2,7 @@ clear all; clc;
 
 kappa = 1.0; % conductivity
 
+
 % % exact solution
 % exact = @(x,y) x*(1-x)*y*(1-y);
 % exact_x = @(x,y) (1-2*x)*y*(1-y);
@@ -59,7 +60,7 @@ fileID = fopen("..\..\gmsh-files\quarter-plate-with-hole-quad.msh", 'r');
 
 IEN = [];
 n_el = 0;
-maxCols = 0; 
+maxCols = 0;
 inDataSection = false;
 
 tline = fgetl(fileID);
@@ -104,21 +105,31 @@ n_en   = 4;               % number of nodes in an element
 n_np   = length(x_coor); % total number of nodal points
 
 
+gg = zeros(n_np,1); % g boundary condition
+hh = zeros(n_np,1); % h boundaty condition
+
 % ID array
 ID = zeros(n_np,1);
 counter = 0;
+
 for nn = 1 : n_np
-    if x_coor(nn) == -1 %left
+    if x_coor(nn) == -1 % left boundary
+        counter = counter +1;
+        ID(nn) = counter;
+        hh(nn) = 40;
+    elseif y_coor(nn) == -1 % bottom boundary
+        counter = counter +1;
+        ID(nn) = counter;
+        hh(nn) = 40;
+    elseif x_coor(nn) == 1 % right boundary
         ID(nn) = 0;
-    elseif y_coor(nn) == -1 %bottom
+        gg(nn) = 0;
+    elseif y_coor(nn) == 1 % top boundary
         ID(nn) = 0;
-    elseif x_coor(nn) == 1 %right
+        gg(nn) = 0;
+    elseif abs(sqrt((x_coor(nn)+1)^2 + (y_coor(nn)+1)^2) - 0.5) <= 1e-12 % circle boundary
         ID(nn) = 0;
-    elseif y_coor(nn) == 1 %top
-        ID(nn) = 0;
-    elseif abs(sqrt((x_coor(nn)+1)^2 + (y_coor(nn)+1)^2) - 0.5) <= 1e-12 %circle
-        % abs(sqrt((x_coor(nn)+1)^2 + (y_coor(nn)+1)^2) - 0.5)
-        ID(nn) = 0;
+        gg(nn) = 1;   % 设置为g边界
     else
         counter = counter +1;
         ID(nn) = counter;
@@ -130,7 +141,8 @@ n_eq = counter;
 LM = ID(IEN);
 
 % allocate the stiffness matrix and load vector
-K = spalloc(n_eq, n_eq, 9 * n_eq);
+%K = spalloc(n_eq, n_eq, 9 * n_eq);
+K = zeros(n_eq, n_eq);
 F = zeros(n_eq, 1);
 
 % loop over element to assembly the matrix and vector
@@ -140,7 +152,8 @@ for ee = 1 : n_el
   
   k_ele = zeros(n_en, n_en); % element stiffness matrix
   f_ele = zeros(n_en, 1);    % element load vector
-  
+  g_ele = zeros(n_en, 1);    % element g boundary contition
+
   for ll = 1 : n_int
     x_l = 0.0; y_l = 0.0;
     dx_dxi = 0.0; dx_deta = 0.0;
@@ -164,7 +177,7 @@ for ee = 1 : n_el
       Na_y = (-Na_xi * dx_deta + Na_eta * dx_dxi) / detJ;
       
       f_ele(aa) = f_ele(aa) + weight(ll) * detJ * f(x_l, y_l) * Na;
-      
+      %h_ele(aa) = h_ele(aa) + weight(ll) * detJ * hh(IEN(ee,aa)) * Na;
       for bb = 1 : n_en
         Nb = Quad(bb, xi(ll), eta(ll));
         [Nb_xi, Nb_eta] = Quad_grad(bb, xi(ll), eta(ll));
@@ -172,14 +185,18 @@ for ee = 1 : n_el
         Nb_y = (-Nb_xi * dx_deta + Nb_eta * dx_dxi) / detJ;
         
         k_ele(aa, bb) = k_ele(aa,bb) + weight(ll) * detJ * kappa * (Na_x * Nb_x + Na_y * Nb_y);
+        if LM(ee, bb) == 0
+            g_ele(aa) = g_ele(aa) + weight(ll) * detJ * kappa * (Na_x * Nb_x + Na_y * Nb_y) * gg(IEN(ee,bb));
+        end
+
       end % end of bb loop
     end % end of aa loop
   end % end of quadrature loop
- 
+
   for aa = 1 : n_en
     PP = LM(ee, aa);
     if PP > 0
-      F(PP) = F(PP) + f_ele(aa);
+      F(PP) = F(PP) + f_ele(aa) - g_ele(aa);
       
       for bb = 1 : n_en
         QQ = LM(ee, bb);
@@ -188,9 +205,7 @@ for ee = 1 : n_el
         else
           % modify F with the boundary data
           % here we do nothing because the boundary data g is zero or
-          % homogeneous
-          
-
+          % homogeneous    
         end
       end  
     end
@@ -209,6 +224,7 @@ for ii = 1 : n_np
     disp(ii) = dn(index);
   else
     % modify disp with the g data. Here it does nothing because g is zero
+    disp(ii) = disp(ii) + gg(ii);
   end
 end
 
