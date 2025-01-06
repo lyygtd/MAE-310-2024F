@@ -134,6 +134,7 @@ for nn = 1 : n_np
         counter = counter +1;
         ID(nn) = counter;
         right_h_boundary_nodes = [right_h_boundary_nodes; nn];
+        [y_coor_right_h_boundary_sorted, sortIndex_right] = sort(y_coor(right_h_boundary_nodes));
         h_right = @(y) 1;
         % ID(nn) = 0;
         % gg(nn) = 0;
@@ -165,6 +166,22 @@ end
 n_eq = counter;
 
 LM = ID(IEN);
+
+
+% right h boundary
+
+h_integration = zeros(n_np);
+for ee = 1 : length(y_coor_right_h_boundary_sorted)-1
+    h_ele = zeros(2,1);
+    x_ele = y_coor_right_h_boundary_sorted(ee,ee+1);
+end
+
+
+
+
+
+
+
 
 % allocate the stiffness matrix and load vector
 %K = spalloc(n_eq, n_eq, 9 * n_eq);
@@ -219,62 +236,6 @@ for ee = 1 : n_el
         end % end of aa loop
     end % end of quadrature loop
 
-    
-    for qua = 1 : n_int_h
-        dx_dxi_h = 0.0;
-        x_l_h = 0.0;
-        left_node_conter = 0;
-        right_node_conter = 0;
-        top_node_conter = 0;
-        bottom_node_conter = 0;
-        for aa = 1 : n_en
-
-            if ismember(IEN(ee,aa),left_h_boundary_nodes)
-                left_node_conter = left_node_conter + 1;
-                x_l_h = x_l_h + y_ele(aa) * PolyShape(1, left_node_conter, xi_h(qua), 0);
-                dx_dxi_h = dx_dxi_h + y_ele(aa) * PolyShape(1, left_node_conter, xi_h(qua), 1);
-            elseif ismember(IEN(ee,aa),right_h_boundary_nodes)
-                right_node_conter = right_node_conter + 1;
-                x_l_h = x_l_h + y_ele(aa) * PolyShape(1, right_node_conter, xi_h(qua), 0);
-                dx_dxi_h = dx_dxi_h + y_ele(aa) * PolyShape(1, right_node_conter, xi_h(qua), 1);
-            elseif ismember(IEN(ee,aa),top_h_boundary_nodes)
-                top_node_conter = top_node_conter + 1;
-                x_l_h = x_l_h + x_ele(aa) * PolyShape(1, top_node_conter, xi_h(qua), 0);
-                dx_dxi_h = dx_dxi_h + x_ele(aa) * PolyShape(1, top_node_conter, xi_h(qua), 1);
-            elseif ismember(IEN(ee,aa),bottom_h_boundary_nodes)
-                bottom_node_conter = bottom_node_conter + 1;
-                x_l_h = x_l_h + x_ele(aa) * PolyShape(1, bottom_node_conter, xi_h(qua), 0);
-                dx_dxi_h = dx_dxi_h + x_ele(aa) * PolyShape(1, bottom_node_conter, xi_h(qua), 1);
-            elseif ismember(IEN(ee,aa),circle_h_boundary_nodes)
-                % circle 边界的h为零，所以不做任何操作
-            end
-        end
-        dxi_dx_h = 1.0 / dx_dxi_h;
-        left_node_conter = 0;
-        right_node_conter = 0;
-        top_node_conter = 0;
-        bottom_node_conter = 0;
-        for aa = 1 : n_en
-            
-            if ismember(IEN(ee,aa),left_h_boundary_nodes)
-                left_node_conter = left_node_conter + 1;
-                h_ele(aa) = h_ele(aa) + weight_h(qua) * PolyShape(1, left_node_conter, xi_h(qua), 0) * h_left(x_l_h) * dx_dxi_h;
-            elseif ismember(IEN(ee,aa),right_h_boundary_nodes)
-                right_node_conter = right_node_conter + 1;
-                h_ele(aa) = h_ele(aa) + weight_h(qua) * PolyShape(1, right_node_conter, xi_h(qua), 0) * h_right(x_l_h) * dx_dxi_h;
-            elseif ismember(IEN(ee,aa),top_h_boundary_nodes)
-                top_node_conter = top_node_conter + 1;
-                h_ele(aa) = h_ele(aa) + weight_h(qua) * PolyShape(1, top_node_conter, xi_h(qua), 0) * h_top(x_l_h) * dx_dxi_h;
-            elseif ismember(IEN(ee,aa),bottom_h_boundary_nodes)
-                bottom_node_conter = bottom_node_conter + 1;
-                h_ele(aa) = h_ele(aa) + weight_h(qua) * PolyShape(1, bottom_node_conter, xi_h(qua), 0) * h_bottom(x_l_h) * dx_dxi_h;
-            elseif ismember(IEN(ee,aa),circle_h_boundary_nodes)
-                % circle 边界的h为零，所以不做任何操作
-            end
-        end
-        % right_node_conter
-    end
-
     for aa = 1 : n_en
         PP = LM(ee, aa);
         if PP > 0
@@ -291,9 +252,6 @@ for ee = 1 : n_el
                 end
             end
         end
-
-
-
     end
 end
 
