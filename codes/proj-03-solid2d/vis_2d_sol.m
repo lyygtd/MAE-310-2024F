@@ -29,7 +29,7 @@ pos = 4;
 
 logicalIdx = true(size(x_coor));
 logicalIdx(pos) = false;
- 
+
 
 x = x_coor(logicalIdx);
 y = y_coor(logicalIdx);

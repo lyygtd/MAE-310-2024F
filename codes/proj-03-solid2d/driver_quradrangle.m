@@ -10,12 +10,13 @@ kappa = 1.0; % conductivity
 %
 % f = @(x,y) 2.0*kappa*x*(1-x) + 2.0*kappa*y*(1-y); % source term
 f = @(x,y) 0;
+
 % quadrature rule
 n_int_xi  = 3;
 n_int_eta = 3;
 n_int     = n_int_xi * n_int_eta;
 [xi, eta, weight] = Gauss2D(n_int_xi, n_int_eta);
-%     ξ   η
+
 
 % quadrature rule for h boundary
 n_int_h = 10;
@@ -110,18 +111,18 @@ n_np   = length(x_coor); % total number of nodal points
 
 
 gg = zeros(n_np,1); % g boundary condition
-hh = zeros(n_np,1); % h boundaty condition
 left_h_boundary_nodes = [];
 right_h_boundary_nodes = [];
 bottom_h_boundary_nodes = [];
 top_h_boundary_nodes = [];
 circle_h_boundary_nodes = [];
+
 % ID array
 ID = zeros(n_np,1);
 counter = 0;
 
 for nn = 1 : n_np
-    if x_coor(nn) == -1  && y_coor(nn) ~= -0.5 % left boundary
+    if x_coor(nn) == -1  %&& y_coor(nn) ~= -0.5 % left boundary
         % counter = counter +1;
         % ID(nn) = counter;
         % left_h_boundary_nodes = [left_h_boundary_nodes; nn];
@@ -129,13 +130,14 @@ for nn = 1 : n_np
         ID(nn) = 0;
         gg(nn) = 1;
     
-    elseif x_coor(nn) == 1 &&  y_coor(nn) ~= 1 && y_coor(nn) ~= -1 % right boundary
+    elseif x_coor(nn) == 1 %&&  y_coor(nn) ~= 1 && y_coor(nn) ~= -1 % right boundary
         counter = counter +1;
         ID(nn) = counter;
         right_h_boundary_nodes = [right_h_boundary_nodes; nn];
         h_right = @(y) 1;
-
-    elseif y_coor(nn) == 1 &&  x_coor(nn) ~= -1 % top boundary
+        % ID(nn) = 0;
+        % gg(nn) = 0;
+    elseif y_coor(nn) == 1 &&  x_coor(nn) ~= -1 && x_coor(nn) ~= 1 % top boundary
         counter = counter +1;
         ID(nn) = counter;
         top_h_boundary_nodes = [top_h_boundary_nodes; nn];
@@ -143,17 +145,17 @@ for nn = 1 : n_np
         % ID(nn) = 0;
         % gg(nn) = 1;
 
-    elseif y_coor(nn) == -1 && x_coor(nn) ~= -0.5 % bottom boundary
+    elseif y_coor(nn) == -1 && x_coor(nn) ~= -1 && x_coor(nn) ~= 1 % bottom boundary
         counter = counter +1;
         ID(nn) = counter;
         bottom_h_boundary_nodes = [bottom_h_boundary_nodes; nn];
         h_bottom = @(x) 0;
 
-    elseif abs(sqrt((x_coor(nn)+1)^2 + (y_coor(nn)+1)^2) - 0.5) <= 1e-12 % circle boundary
-       counter = counter +1;  %请永远设为h=0的边界
+    elseif abs(sqrt((x_coor(nn)+1)^2 + (y_coor(nn)+1)^2) - 0.5) <= 1e-14 % circle boundary
+        counter = counter +1;  %请永远设为h=0的边界
         ID(nn) = counter;
         h_circle = @(x,y) 0;
-        
+
     else
         counter = counter +1;
         ID(nn) = counter;
@@ -177,7 +179,7 @@ for ee = 1 : n_el
     k_ele = zeros(n_en, n_en); % element stiffness matrix
     f_ele = zeros(n_en, 1);    % element load vector
     g_ele = zeros(n_en, 1);    % element g boundary contition
-    h_ele = zeros(n_en, 1);
+    h_ele = zeros(n_en, 1);    % element h boundary contition
 
     for ll = 1 : n_int
         x_l = 0.0; y_l = 0.0;
@@ -269,8 +271,8 @@ for ee = 1 : n_el
             elseif ismember(IEN(ee,aa),circle_h_boundary_nodes)
                 % circle 边界的h为零，所以不做任何操作
             end
-
         end
+        % right_node_conter
     end
 
     for aa = 1 : n_en
