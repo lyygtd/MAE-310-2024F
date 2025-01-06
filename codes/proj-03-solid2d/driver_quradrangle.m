@@ -174,6 +174,10 @@ h_integration = zeros(n_np);
 for ee = 1 : length(y_coor_right_h_boundary_sorted)-1
     h_ele = zeros(2,1);
     x_ele = y_coor_right_h_boundary_sorted(ee,ee+1);
+    for qua = 1 : n_int_h
+        dx_dxi_h = 0.0;
+        x_l_h = 0.0;
+        for aa = 1 : 2
 end
 
 
