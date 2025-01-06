@@ -1,5 +1,7 @@
 clear all; clc; clf;
 
+close all
+
 load("Solid-quad.mat");
 
 pos = 4; 
@@ -12,7 +14,7 @@ x = x_coor(logicalIdx);
 y = y_coor(logicalIdx);
 z = disp(logicalIdx);
 
-
+figure
 scatter3(x, y, z, 6, z, 'filled');
 
 xlabel("x")

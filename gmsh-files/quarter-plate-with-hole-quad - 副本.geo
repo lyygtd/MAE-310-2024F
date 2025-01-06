@@ -18,7 +18,7 @@ Plane Surface(1) = {1};
 
 
 
-Transfinite Line{1, 2, 3, 4} = 4;
+Transfinite Line{1, 2, 3, 4} = 25;
 
 Transfinite Surface{1};
 Transfinite Surface{2};
