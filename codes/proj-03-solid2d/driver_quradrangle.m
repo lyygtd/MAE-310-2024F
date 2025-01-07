@@ -117,49 +117,87 @@ bottom_h_boundary_nodes = [];
 top_h_boundary_nodes = [];
 circle_h_boundary_nodes = [];
 
+% Boundary condition settings
+
+left_Boudary_is_Dirihelt = true;
+g_left = @(y) 0;
+left_Boudary_is_Neummen = false;
+h_left = @(y) 40;
+
+right_Boudary_is_Dirihelt = false;
+g_right = @(y) 0;
+right_Boudary_is_Neummen = true;
+h_right = @(y) y;
+
+top_Boudary_is_Dirihelt = false;
+g_top = @(x) x;
+top_Boudary_is_Neummen = true;
+h_top = @(x) x;
+
+bottom_Boudary_is_Dirihelt = true;
+g_bottom = @(x) 0;
+bottom_Boudary_is_Neummen = false;
+h_bottom = @(x) 0;
+
+circle_Boudary_is_Dirihelt = false;
+g_circle = @(x,y) 0;
+circle_Boudary_is_Neummen = true;
+h_circle = @(x,y) 0;
+
 % ID array
 ID = zeros(n_np,1);
 counter = 0;
 
 for nn = 1 : n_np
     if x_coor(nn) == -1   % left boundary
-        % counter = counter +1;
-        % ID(nn) = counter;
-        % left_h_boundary_nodes = [left_h_boundary_nodes; nn];
-        % h_left = @(y) 40;
-        ID(nn) = 0;
-        gg(nn) = 0;
-    
+        if left_Boudary_is_Neummen
+            counter = counter +1;
+            ID(nn) = counter;
+            left_h_boundary_nodes = [left_h_boundary_nodes; nn];
+        elseif left_Boudary_is_Dirihelt
+            ID(nn) = 0;
+            gg(nn) = g_left(y_coor(nn));
+        end
+
     elseif x_coor(nn) == 1  % right boundary
-        counter = counter +1;
-        ID(nn) = counter;
-        right_h_boundary_nodes = [right_h_boundary_nodes; nn]; 
-        h_right = @(y) y;
-        % ID(nn) = 0;
-        % gg(nn) = 0;
+        if right_Boudary_is_Neummen
+            counter = counter +1;
+            ID(nn) = counter;
+            right_h_boundary_nodes = [right_h_boundary_nodes; nn];
+        elseif right_Boudary_is_Dirihelt
+            ID(nn) = 0;
+            gg(nn) = g_right(y_coor(nn));
+        end
+
     elseif y_coor(nn) == 1  % top boundary
-        counter = counter +1;
-        ID(nn) = counter;
-        top_h_boundary_nodes = [top_h_boundary_nodes; nn];
-        h_top = @(x) x;
-        % ID(nn) = 0;
-        % gg(nn) = 1;
+        if top_Boudary_is_Neummen
+            counter = counter +1;
+            ID(nn) = counter;
+            top_h_boundary_nodes = [top_h_boundary_nodes; nn];
+        elseif top_Boudary_is_Dirihelt
+            ID(nn) = 0;
+            gg(nn) = g_top(x_coor(nn));
+        end
 
     elseif y_coor(nn) == -1  % bottom boundary
-        % counter = counter +1;
-        % ID(nn) = counter;
-        % bottom_h_boundary_nodes = [bottom_h_boundary_nodes; nn];
-        % h_bottom = @(x) 0;
-        ID(nn) = 0;
-        gg(nn) = 0;
+        if bottom_Boudary_is_Neummen
+            counter = counter +1;
+            ID(nn) = counter;
+            bottom_h_boundary_nodes = [bottom_h_boundary_nodes; nn];
+        elseif bottom_Boudary_is_Dirihelt
+            ID(nn) = 0;
+            gg(nn) = g_bottom(x_coor(nn));
+        end
 
     elseif abs(sqrt((x_coor(nn)+1)^2 + (y_coor(nn)+1)^2) - 0.5) <= 1e-14 % circle boundary
-        counter = counter +1;
-        ID(nn) = counter;
-        circle_h_boundary_nodes = [circle_h_boundary_nodes; nn];
-        h_circle = @(x,y) 0;
-        % ID(nn) = 0;
-        % gg(nn) = 0;
+        if bottom_Boudary_is_Neummen
+            counter = counter +1;
+            ID(nn) = counter;
+            circle_h_boundary_nodes = [circle_h_boundary_nodes; nn];
+        elseif bottom_Boudary_is_Dirihelt
+            ID(nn) = 0;
+            gg(nn) = g_circle(x_coor(nn), y_coor(nn));
+        end
 
     else
         counter = counter +1;
