@@ -169,7 +169,7 @@ for nn = 1 : n_np
         end
         top_boundary_nodes = [top_boundary_nodes; nn];
 
-    elseif abs(sqrt((x_coor(nn)+1)^2 + (y_coor(nn)+1)^2) - 0.5) <= 1e-12 % circle boundary, free boundary
+    elseif abs(sqrt((x_coor(nn)+1)^2 + (y_coor(nn)+1)^2) - 0.5) <= 1e-14 % circle boundary, free boundary
         for ii = 1 : n_sd
             counter = counter +1;
             ID(ii, nn) = counter;

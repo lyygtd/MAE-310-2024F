@@ -25,6 +25,13 @@ xigema_r_r         = @(r,theta) Tx/2*(1-R^2/r^2)+Tx/2*(1-4*R^2/r^2+3*R^4/r^4)*co
 xigema_theta_theta = @(r,theta) Tx/2*(1+R^2/r^2)-Tx/2*(1          +3*R^4/r^4)*cos(2*theta);
 xigema_r_theta     = @(r,theta) -Tx/2*(1+2*R^2/r^2-3*R^4/r^4)*sin(2*theta);
 
+r = @(x, y) sqrt(x^2+y^2);
+theta = @(x, y) atan(y/x);
+
+xigema_x_x = @(x,y) xigema_r_r(r(x,y),theta(x,y))*(cos(theta(x,y)))^2 + xigema_theta_theta(r(x,y),theta(x,y))*(sin(theta(x,y)))^2 - 2*xigema_r_theta(r(x,y),theta(x,y))*sin(theta(x,y))*cos(theta(x,y));
+xigema_y_y = @(x,y) xigema_r_r(r(x,y),theta(x,y))*(sin(theta(x,y)))^2 + xigema_theta_theta(r(x,y),theta(x,y))*(cos(theta(x,y)))^2 + 2*xigema_r_theta(r(x,y),theta(x,y))*sin(theta(x,y))*cos(theta(x,y));
+xigema_x_y = @(x,y) (xigema_theta_theta(r(x,y),theta(x,y))-xigema_r_r(r(x,y),theta(x,y)))*sin(theta(x,y))*cos(theta(x,y)) + xigema_r_theta(r(x,y),theta(x,y))*((cos(theta(x,y)))^2-(sin(theta(x,y)))^2);
+
 % quadrature rule
 n_int = 3;
 weight = [1/3, 1/3, 1/3]/2;
