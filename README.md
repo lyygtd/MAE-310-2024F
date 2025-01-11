@@ -1,33 +1,5 @@
-## MAE 310 Computational Solid Mechanics
-
-### Instructor
-- [Dr. Ju Liu](https://ju-liu.github.io), Assistant Professor of MAE Department
-- Office: Room 1004 North Engineering Building
-- Contact by [email](mailto:liuj36@sustech.edu.cn)
-
-### Teaching Assistants
-- Chi Ding, Office: Room 1017 North Engineering Building, Contact by [email](mailto:12431145@mail.sustech.edu.cn).
-- Bojun Zhang, Office: Room 1017 North Engineering Building, Contact by [email](mailto:1002129979@qq.com).
-
-### Goals
-This course aims to give students an in-depth understanding of the finite element method. In particular, the theoretical foundation as well as the implementation of the finite element method will be covered with applications primarily in the static and dynamic analysis of solids and structures.
-
-- Syllabus: [link](Syllabus_Computational_Solid_Mechanics_2024.pdf)
-- Grading policy: [link](%E8%AF%BE%E7%A8%8B%E8%80%83%E6%A0%B8%E8%AF%84%E5%88%86%E6%A0%87%E5%87%86.pdf)
-
-### Prerequisites
-Calculus, Linear algebra, and MATLAB programming are required.
-
-### Assignments
-- [Assignment 0](hw/Homework-0.pdf)
-- [Assignment 1](hw/Homework-1.pdf) - Due Sep. 30 2024.
-- [Assignment 2](hw/Homework-2.pdf) - Due Oct. 21 2024.
-- [Assignment 3](hw/Homework-3.pdf) - Due Nov. 18 2024.
-- [Assignment 4](hw/Homework-4.pdf) - Due Nov. 25 2024.
-- [Assignment 5](hw/Homework-5.pdf) - Due Dec. 16 2024.
-- [Assignment 6](hw/Homework-6.pdf) - Due Dec. 30 2024.
-- [Final project](hw/Final-Project-2024.pdf) - Due Jan. 10 2025.
-
-
-### References
-- The Finite Element Method: linear static and dynamic finite element analysis, T.J.R. Hughes, Dover 2000. [JD](https://item.jd.com/1130427437.html)
+## 代码运行方法
+直接运行driver_quradrangle.m和driver_triangle.m两个文件，可分别进行四边形网格和三角形网格的有限元分析
+修改quarter-plate-with-hole-quad.geo和quarter-plate-with-hole-tria.geo中Transfinite Line{1, 2, 3, 4, 5, 6, 7} = 后的数字，可改变网格密度，在Gmesh中导出msh文件，文件版本选择version 2 ASCII，只勾选save all element，覆盖同名文件后即可再次运行。
+driver_quradrangle.m的第198、199和204、205行可通过添加或取消注释边界条件修改右边和上边施加的应力边界条件
+Verification_quad.m为组装解的测试，但无法给出正确的结果
