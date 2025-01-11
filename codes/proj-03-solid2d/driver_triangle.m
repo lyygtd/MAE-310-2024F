@@ -4,7 +4,7 @@ kappa = 1.0; % conductivity
 E = 1e9; % Young's modulus
 upsilon = 0.3; % Poisson's ration υ
 lambda = upsilon * E / (1 + upsilon) / (1 - 2 * upsilon); % λ
-miu = E / 2 / (1 + 2 * upsilon); % μ
+miu = E / 2 / (1 + upsilon); % μ
 
 n_sd = 2; % 固体力学问题的维度
 n_dof = 2; % 节点自由度

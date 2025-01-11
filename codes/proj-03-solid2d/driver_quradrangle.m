@@ -4,7 +4,7 @@ kappa = 1.0; % conductivity
 E = 1e9; % Young's modulus
 upsilon = 0.3; % Poisson's ration υ
 lambda = upsilon * E / (1 + upsilon) / (1 - 2 * upsilon); % λ
-miu = E / 2 / (1 + 2 * upsilon); % μ
+miu = E / 2 / (1 + upsilon); % μ
 
 n_sd = 2; % 固体力学问题的维度
 n_dof = 2; % 节点自由度
@@ -195,12 +195,14 @@ right_boundary_nodes = [right_boundary_nodes; 1];
 circle_boundary_nodes = [circle_boundary_nodes; 5; 6];
 top_boundary_nodes = [top_boundary_nodes; 2; 3];
 
-h_right= @(y) [1e4 0];
+h_right= @(y) [xigema_x_x(1,y) xigema_x_y(1,y)];
+% h_right= @(y) [1e4 0];
 for ii = 1 : length(right_boundary_nodes)
     hh(:, right_boundary_nodes(ii)) = hh(:, right_boundary_nodes(ii)) + h_right(y_coor(right_boundary_nodes(ii)))';
 end
 
-h_top= @(y) [0 0];
+h_top= @(y) [xigema_x_y(x,1) xigema_y_y(x,1)];
+%h_top= @(y) [0 0];
 for ii = 1 : length(top_boundary_nodes)
     hh(:, top_boundary_nodes(ii)) = hh(:, top_boundary_nodes(ii)) + h_top(y_coor(top_boundary_nodes(ii)))';
 end

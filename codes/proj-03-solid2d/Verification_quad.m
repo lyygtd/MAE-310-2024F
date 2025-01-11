@@ -3,8 +3,8 @@ clear all; clc;
 kappa = 1.0; % conductivity
 E = 1e9; % Young's modulus
 upsilon = 0.3; % Poisson's ration υ
-lambda = upsilon * E / (1 + upsilon) / (1 - 2 * upsilon); % λ
-miu = E / 2 / (1 + 2 * upsilon); % μ
+lambda = upsilon * E / ((1 + upsilon) * (1 - 2 * upsilon)); % λ
+miu = E / (2 * (1 + upsilon)); % μ
 
 n_sd = 2; % 固体力学问题的维度
 n_dof = 2; % 节点自由度
@@ -18,7 +18,12 @@ e = [1 0;
 
 
 % exact solution
-f = @(x,y) 0;
+exact = @(x,y,i) (i == 1) * (x*(x-1)*y*(y-1)) + (i == 2) * (x*(x-1)*y*(y-1));
+nu = 0.3;
+f = @(x,y,i) (i == 1) * -( (E / (1 - nu^2)) * (2*y*(y - 1) + nu*( (x - 1)*(2*y - 1) + x*(2*y - 1) ) ) + ...
+                           (E / (2*(1 + nu))) * ( x*(x - 1)*2 + (2*x - 1)*(x - 1) + 2*y*(2*x - 1) ) ) + ...
+             (i == 2) * -( (E / (2*(1 + nu))) * ( (x - 1)*(2*y - 1) + y*(2*x - 1) + 2*y*(2*x - 1) )   + ...
+                           (E / (1 - nu^2)) * (2*x*(x - 1) + nu*( (y - 1)*(2*x - 1) + y*(2*x - 1) ) ) );
 Tx = 1e4;
 R = 0.5;
 xigema_r_r         = @(r,theta) Tx/2*(1-R^2/r^2)+Tx/2*(1-4*R^2/r^2+3*R^4/r^4)*cos(2*theta);
@@ -37,7 +42,7 @@ n_int_h = 10;
 [xi_h, weight_h] = Gauss(n_int_h, -1, 1);
 
 % mesh数据导入
-fileID = fopen("..\..\gmsh-files\quarter-plate-with-hole-quad - 副本.msh", 'r');
+fileID = fopen("..\..\gmsh-files\manufactured-solution-quad.msh", 'r');
 if fileID == -1
     error('无法打开文件');
 end
@@ -75,7 +80,7 @@ while ischar(tline)
 end
 
 
-fileID = fopen("..\..\gmsh-files\quarter-plate-with-hole-quad - 副本.msh", 'r');
+fileID = fopen("..\..\gmsh-files\manufactured-solution-quad.msh", 'r');
 
 IEN = [];
 n_el = 0;
@@ -139,139 +144,113 @@ gg = zeros(n_sd, n_np);
 hh = zeros(n_sd, n_np);
 
 for nn = 1 : n_np
-    if x_coor(nn) == -1 && y_coor(nn) ~= -1% left boundary, symmetric
+    if nn == 1
         ID(1, nn) = 0;
         gg(1, nn) = 0;
-        counter = counter + 1;
-        ID(2, nn) = counter;
-        hh(2, nn) = 0;
-        left_boundary_nodes = [left_boundary_nodes; nn];
-
-    elseif y_coor(nn) == -1 && x_coor(nn) ~= -1 % bottom boundary, symmetric
         ID(2, nn) = 0;
         gg(2, nn) = 0;
-        counter = counter + 1;
-        ID(1, nn) = counter;
-        hh(1, nn) = 0;
-        bottom_boundary_nodes = [bottom_boundary_nodes; nn];
+
+    elseif nn == 2
+        ID(1, nn) = 0;
+        gg(1, nn) = 0;
+        ID(2, nn) = 0;
+        gg(2, nn) = 0;
+
+    elseif nn == 3
+        ID(1, nn) = 0;
+        gg(1, nn) = 0;
+        ID(2, nn) = 0;
+        gg(2, nn) = 0;
+
+    elseif nn == 4
+        ID(1, nn) = 0;
+        gg(1, nn) = 0;
+        ID(2, nn) = 0;
+        gg(2, nn) = 0;
+
+    elseif x_coor(nn) == 0  % left boundary, symmetric
+        ID(1, nn) = 0;
+        gg(1, nn) = 0;
+        ID(2, nn) = 0;
+        hh(2, nn) = 0;
+
+    elseif y_coor(nn) == 0 % bottom boundary, symmetric
+       ID(1, nn) = 0;
+        gg(1, nn) = 0;
+        ID(2, nn) = 0;
+        hh(2, nn) = 0;
 
     elseif x_coor(nn) == 1  % right boundary, user define
-        for ii = 1 : n_sd
-            counter = counter +1;
-            ID(ii, nn) = counter;
-        end
-        right_boundary_nodes = [right_boundary_nodes; nn];
+        ID(1, nn) = 0;
+        gg(1, nn) = 0;
+        ID(2, nn) = 0;
+        hh(2, nn) = 0;
 
     elseif y_coor(nn) == 1  % top boundary, user define
+        ID(1, nn) = 0;
+        gg(1, nn) = 0;
+        ID(2, nn) = 0;
+        hh(2, nn) = 0;
+
+    else
         for ii = 1 : n_sd
             counter = counter +1;
             ID(ii, nn) = counter;
         end
-        top_boundary_nodes = [top_boundary_nodes; nn];
 
-        if y_coor(nn) == -1 && x_coor(nn) == -1
-            for ii = 1 : n_sd
-                ID(ii, nn) = 0;
-            end
-        else
-            for ii = 1 : n_sd
-                counter = counter +1;
-                ID(ii, nn) = counter;
-            end
-        end
     end
 end
 
-right_boundary_nodes = [right_boundary_nodes; 1];
-top_boundary_nodes = [top_boundary_nodes; 2; 3];
-left_boundary_nodes = [left_boundary_nodes; 4];
-bottom_boundary_nodes = [bottom_boundary_nodes; 4];
-
-h_right= @(y) [1e4 0];
-for ii = 1 : length(right_boundary_nodes)
-    hh(:, right_boundary_nodes(ii)) = hh(:, right_boundary_nodes(ii)) + h_right(y_coor(right_boundary_nodes(ii)))';
-end
-
-h_top= @(y) [0 0];
-for ii = 1 : length(top_boundary_nodes)
-    hh(:, top_boundary_nodes(ii)) = hh(:, top_boundary_nodes(ii)) + h_top(y_coor(top_boundary_nodes(ii)))';
-end
-
-
-y_coor_right_h_boundary_sorted = sort(y_coor(right_boundary_nodes));
-x_coor_top_h_boundary_sorted = sort(x_coor(top_boundary_nodes));
-
-
-
+% right_boundary_nodes = [right_boundary_nodes; 1];
+% top_boundary_nodes = [top_boundary_nodes; 2; 3];
+% bottom_boundary_nodes = [bottom_boundary_nodes; 4];
+% 
+% h_right= @(y) [1e4 0];
+% for ii = 1 : length(right_boundary_nodes)
+%     hh(:, right_boundary_nodes(ii)) = hh(:, right_boundary_nodes(ii)) + h_right(y_coor(right_boundary_nodes(ii)))';
+% end
+% 
+% 
+% y_coor_right_h_boundary_sorted = sort(y_coor(right_boundary_nodes));
+% 
+% 
+% 
 n_eq = counter;
-
-
-h_integration = zeros(n_sd, n_np);
-
-
-% right h boundary
-for ee = 1 : length(y_coor_right_h_boundary_sorted)-1
-    for ii = 1 : 2
-        h_ele = zeros(2,1);
-        x_ele = [y_coor_right_h_boundary_sorted(ee), y_coor_right_h_boundary_sorted(ee+1)];
-        for qua = 1 : n_int_h
-            dx_dxi_h = 0.0;
-            x_l_h = 0.0;
-            for aa = 1 : 2
-                x_l_h =    x_l_h    + x_ele(aa) * PolyShape(1, aa, xi_h(qua), 0);
-                dx_dxi_h = dx_dxi_h + x_ele(aa) * PolyShape(1, aa, xi_h(qua), 1);
-            end
-            dxi_dx_h = 1.0 / dx_dxi_h;
-            for aa = 1 : 2
-                h_temp = h_right(x_l_h);
-                h_ele(aa) = h_ele(aa) + weight_h(qua) * PolyShape(1, aa, xi_h(qua), 0) * h_temp(ii) * dx_dxi_h;
-            end
-        end
-        for aa = 1 : 2
-            for i = 1 : n_np
-                if x_coor(i) == 1  && y_coor(i) == x_ele(aa)
-                    A = i;
-                    
-                    break;
-                end
-            end
-            h_integration(ii, A) = h_integration(ii, A) + h_ele(aa);
-        end
-    end
-end
-
-%top h boundary
-for ee = 1 : length(x_coor_top_h_boundary_sorted)-1
-    for ii = 1 : n_sd
-        h_ele = zeros(2,1);
-        x_ele = [x_coor_top_h_boundary_sorted(ee), x_coor_top_h_boundary_sorted(ee+1)];
-        for qua = 1 : n_int_h
-            dx_dxi_h = 0.0;
-            x_l_h = 0.0;
-            for aa = 1 : 2
-                x_l_h =    x_l_h    + x_ele(aa) * PolyShape(1, aa, xi_h(qua), 0);
-                dx_dxi_h = dx_dxi_h + x_ele(aa) * PolyShape(1, aa, xi_h(qua), 1);
-            end
-            dxi_dx_h = 1.0 / dx_dxi_h;
-            for aa = 1 : 2
-                h_temp = h_top(x_l_h);
-                h_ele(aa) = h_ele(aa) + weight_h(qua) * PolyShape(1, aa, xi_h(qua), 0) * h_temp(ii) * dx_dxi_h;
-            end
-        end
-        
-        for aa = 1 : 2
-            for i = 1 : n_np
-                if y_coor(i) == 1  && x_coor(i) == x_ele(aa)
-                    A = i;
-                    break;
-                end
-            end
-            h_integration(ii, A) = h_integration(ii, A) + h_ele(aa);
-        end
-    end
-end
-
-
+% 
+% 
+% h_integration = zeros(n_sd, n_np);
+% 
+% 
+% % right h boundary
+% for ee = 1 : length(y_coor_right_h_boundary_sorted)-1
+%     for ii = 1 : 2
+%         h_ele = zeros(2,1);
+%         x_ele = [y_coor_right_h_boundary_sorted(ee), y_coor_right_h_boundary_sorted(ee+1)];
+%         for qua = 1 : n_int_h
+%             dx_dxi_h = 0.0;
+%             x_l_h = 0.0;
+%             for aa = 1 : 2
+%                 x_l_h =    x_l_h    + x_ele(aa) * PolyShape(1, aa, xi_h(qua), 0);
+%                 dx_dxi_h = dx_dxi_h + x_ele(aa) * PolyShape(1, aa, xi_h(qua), 1);
+%             end
+%             dxi_dx_h = 1.0 / dx_dxi_h;
+%             for aa = 1 : 2
+%                 h_temp = h_right(x_l_h);
+%                 h_ele(aa) = h_ele(aa) + weight_h(qua) * PolyShape(1, aa, xi_h(qua), 0) * h_temp(ii) * dx_dxi_h;
+%             end
+%         end
+%         for aa = 1 : 2
+%             for i = 1 : n_np
+%                 if x_coor(i) == 1  && y_coor(i) == x_ele(aa)
+%                     A = i;
+% 
+%                     break;
+%                 end
+%             end
+%             h_integration(ii, A) = h_integration(ii, A) + h_ele(aa);
+%         end
+%     end
+% end
 
 
 % allocate the stiffness matrix and load vector
@@ -316,7 +295,7 @@ for ee = 1 : n_el
                         Na_y Na_x];
 
 
-                    f_ele(aa) = f_ele(aa) + weight(ll) * detJ * f(x_l, y_l) * Na;
+                    f_ele(aa) = f_ele(aa) + weight(ll) * detJ * f(x_l, y_l, ii) * Na;
                     for bb = 1 : n_en
                         Nb = Quad(bb, xi(ll), eta(ll));
                         [Nb_xi, Nb_eta] = Quad_grad(bb, xi(ll), eta(ll));
@@ -356,14 +335,14 @@ for ee = 1 : n_el
     end
 end
 
-for AA = 1 : n_np
-    for ii = 1 : n_sd
-        PP = ID(ii, AA);
-        if PP > 0
-            F(PP) = F(PP) + h_integration(ii, AA);
-        end
-    end
-end
+% for AA = 1 : n_np
+%     for ii = 1 : n_sd
+%         PP = ID(ii, AA);
+%         if PP > 0
+%             F(PP) = F(PP) + h_integration(ii, AA);
+%         end
+%     end
+% end
 
 % solve the stiffness matrix
 dn = K \ F;
@@ -474,3 +453,11 @@ save("Solid-quad", "disp", "x_coor", "y_coor");
 % ylabel("log(e_1\_error)")
 % p=polyfit(log(nel),log(e_1),1);
 % slope_e_1 = p(1)
+
+
+disp_exact = zeros(2, n_np);
+for AA = 1 : n_np
+    for ii = 1 : 2
+        disp_exact(ii, AA) = exact(x_coor(AA), y_coor(AA), ii);
+    end
+end

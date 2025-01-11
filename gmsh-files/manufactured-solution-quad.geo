@@ -1,10 +1,10 @@
 R = 0.5;
 L = 1.0;
 
-Point(1) = {L, -L, 0};
+Point(1) = {L, 0, 0};
 Point(2) = {L, L, 0};
-Point(3) = {-L, L, 0};
-Point(4) = {-L, -L, 0};
+Point(3) = {0, L, 0};
+Point(4) = {0, 0, 0};
 
 
 Line(1) = {4, 3};
@@ -18,7 +18,7 @@ Plane Surface(1) = {1};
 
 
 
-Transfinite Line{1, 2, 3, 4} = 3;
+Transfinite Line{1, 2, 3, 4} = 4;
 
 Transfinite Surface{1};
 Transfinite Surface{2};
